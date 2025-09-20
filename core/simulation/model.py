@@ -1,146 +1,198 @@
-# core/simulation/model.py
-import random
-from copy import deepcopy
+# Contenido completo, final y definitivo de core/simulation/model.py
 
-
-# --- Importar Componentes de Mesa ---
 from mesa import Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-# --- Fin Importaciones Mesa ---
+from typing import Dict, List
+import random
+import numpy as np
 
-# --- Importar Componentes del Proyecto (Absolutos desde 'core') ---
-from core.project import Project
-from core.entities import Resource, Task
-from core.agents import TaskAgent, BaseProjectAgent
-from core.simulation.parameters import SimulationParameters # <-- Importación Absoluta
-# --- Fin Importaciones ---
+# Se importan las clases que el modelo necesita conocer
+from core.entities import Task, Resource, Team
+from core.agents import TaskAgent
+from core.simulation.parameters import SimulationParameters
+from core.simulation.assignment import BaseAssignmentStrategy, STRATEGY_MAP
 
 
-# Heredar de mesa.Model importado
 class ProjectManagementModel(Model):
     """
-    Modelo de simulación basado en Mesa para gestión de proyectos.
-    Orquesta agentes, tareas y tiempo usando el scheduler y datacollector de Mesa.
+    El modelo principal de la simulación. Orquesta a los agentes,
+    el avance de las tareas y la recolección de datos.
     """
-    def __init__(self, base_project: Project, params: SimulationParameters):
-        """
-        Inicializa el modelo Mesa.
 
-        Args:
-            base_project: El objeto Project base (cargado y con recursos).
-            params: Parámetros de la simulación.
-        """
-        # --- LLAMADA A SUPER() ---
-        super().__init__() # <-- ¡Llamada OBLIGATORIA al constructor de mesa.Model!
-        # --- FIN LLAMADA A SUPER() ---
-
-        # Validaciones de entrada
-        if not isinstance(base_project, Project): raise TypeError("base_project debe ser Project.")
-        if not base_project.resources: raise ValueError("Project base debe tener Recursos.")
-        if not isinstance(params, SimulationParameters): raise TypeError("params debe ser SimulationParameters.")
-
+    # MODIFICADO: La firma del constructor ahora es compatible con el Runner.
+    # Acepta listas de tareas y recursos, no el objeto Project completo.
+    def __init__(self, tasks: List[Task], resources: List[Resource], params: SimulationParameters):
+        super().__init__()
         self.params = params
-        self.project = deepcopy(base_project)
-        self.project.reset_project_state() # Asegurar estado inicial limpio
+        self.schedule = RandomActivation(self)
 
-        # --- Scheduler y Agentes ---
-        self.schedule = RandomActivation(self) # Usar scheduler importado
-        self.num_agents = 0
-        for resource in self.project.get_all_resources():
-            agent_efficiency = random.uniform(0.8, 1.2)
+        # El modelo ahora trabaja con su propia copia de las tareas y recursos
+        self.task_map: Dict[int, Task] = {task.id: task for task in tasks}
 
-            # --- LÍNEA MODIFICADA (sin unique_id) ---
-            # Mesa asignará unique_id automáticamente al hacer schedule.add()
-            agent = TaskAgent(model=self,  # Solo model, resource y args específicos
-                              resource=resource,
-                              efficiency=agent_efficiency)
-            # --- FIN LÍNEA MODIFICADA ---
+        self.teams: List[Team] = []
+        self.team_map: Dict[int, Team] = {}
 
-            self.schedule.add(agent)  # Aquí Mesa le asigna el unique_id
-            self.num_agents += 1
-        # print(f"Info (MesaModel): {self.num_agents} agentes creados.")
+        self.project_agents: List[TaskAgent] = []
+        self.agents_by_resource_id: Dict[int, TaskAgent] = {}
+        self.agent_to_team_map: Dict[int, Team] = {}
 
+        for resource in resources:
+            # Se crea un agente por cada recurso, usando el constructor moderno
+            agent = TaskAgent(unique_id=resource.id, model=self, resource=resource)
+            self.project_agents.append(agent)
+            self.schedule.add(agent)
+            self.agents_by_resource_id[resource.id] = agent
 
-        # --- DataCollector de Mesa ---
-        self.cumulative_actual_cost = 0.0 # AC se acumula aquí
+        self._create_teams_from_config()
+
+        # Se selecciona e instancia la estrategia de asignación desde la configuración
+        strategy_class = STRATEGY_MAP.get(params.assignment_strategy)
+        if not strategy_class:
+            raise ValueError(f"Estrategia de asignación desconocida: '{params.assignment_strategy}'")
+        self.assignment_strategy: BaseAssignmentStrategy = strategy_class(self)
+        print(f"Info (Model): Usando estrategia: {strategy_class.__name__}")
+
+        # El colector de datos con todas las métricas, incluyendo las de equipo
         self.datacollector = DataCollector(
             model_reporters={
-                "Time": lambda m: m.schedule.steps,
-                "Completion": lambda m: m._calculate_completion_percent(),
-                "EarnedValue": lambda m: m._calculate_earned_value(),
-                "ActualCost": lambda m: m.cumulative_actual_cost,
-                "CPI": lambda m: m._calculate_cpi(),
-                "ActiveAgents": lambda m: m._count_active_agents(),
+                "Time": lambda m: m.schedule.time,
+                "Completion": lambda m: m.project_completion_percentage(),
+                "ActualCost": lambda m: m.total_actual_cost(),
+                "EarnedValue": lambda m: m.total_earned_value(),
+                "CPI": lambda m: m.cost_performance_index(),
+                "SPI": lambda m: m.schedule_performance_index(),
+                "ActiveAgents": lambda m: sum(1 for a in self.schedule.agents if not a.is_available()),
+                "AvgTeamMorale": lambda m: self.get_average_team_morale(),
+                "AvgTeamCohesion": lambda m: self.get_average_team_cohesion()
             }
-            # agent_reporters={...} # Opcional
         )
         self.running = True
-        self.datacollector.collect(self) # Coleccionar estado inicial (t=0)
 
-    # --- Funciones auxiliares para DataCollector ---
-    def _calculate_completion_percent(self) -> float:
-        if not self.project.tasks: return 100.0
-        tasks_wd = [t for t in self.project.tasks.values() if t.duration > 0]
-        if not tasks_wd: return 100.0 if all(t.progress>=1.0 for t in self.project.tasks.values()) else 0.0
-        total_dur = sum(t.duration for t in tasks_wd)
-        comp_dur = sum(t.duration * t.progress for t in tasks_wd)
-        return min(100.0, (comp_dur / total_dur) * 100) if total_dur > 0 else 100.0
+    def _create_teams_from_config(self):
+        team_definitions = self.params.team_definitions
+        if not team_definitions: return
+        print("\nCreando equipos desde la configuración...")
+        for team_def in team_definitions:
+            team_id, name, member_ids = team_def.get("id"), team_def.get("name"), team_def.get("member_resource_ids",
+                                                                                               [])
+            team_members = [self.agents_by_resource_id[res_id] for res_id in member_ids if
+                            res_id in self.agents_by_resource_id]
+            if team_members:
+                team = Team(team_id, name, team_members)
+                self.teams.append(team)
+                self.team_map[team_id] = team
+                for member_agent in team_members:
+                    member_agent.team = team
+                    self.agent_to_team_map[member_agent.unique_id] = team
+                print(f" -> Equipo Creado: {team}")
+        print("-" * 20)
 
-    def _calculate_earned_value(self) -> float:
-        return sum((task.estimated_cost or 0.0) * task.progress for task in self.project.tasks.values())
+    def _update_task_progress(self):
+        for task in self.task_map.values():
+            if task.status == "done": continue
+            work_increment = 0.0
+            if task.assigned_team:
+                team = task.assigned_team
+                if not team.is_busy() or team.current_task.id != task.id: continue
+                team_base_work = len(team.members)
+                team_efficiency = team.cohesion_factor
+                work_increment = team_base_work * team_efficiency
+            elif task.assigned_resource:
+                agent = self.agents_by_resource_id.get(task.required_resource_id)
+                if agent and not agent.is_available() and agent.current_task.id == task.id:
+                    work_increment = 1.0 * agent.efficiency
+            if work_increment > 0:
+                error = random.uniform(-self.params.error_margin, self.params.error_margin)
+                total_work = work_increment * (1 + error)
+                progress_increment = total_work / task.duration if task.duration > 0 else 1.0
+                task.update_progress(progress_increment)
+                task.real_duration += 1
+            if task.progress >= 1.0:
+                if task.assigned_team:
+                    task.assigned_team.boost_morale()
+                    for agent in task.assigned_team.members: agent.release()
+                    task.assigned_team.release_task()
+                elif task.assigned_resource:
+                    agent = self.agents_by_resource_id.get(task.required_resource_id)
+                    if agent: agent.release()
 
-    def _calculate_current_step_cost(self) -> float:
-        """Calcula costo incurrido por agentes activos en el estado actual (aproximación)."""
-        step_cost = 0.0
-        for agent in self.schedule.agents:
-             if isinstance(agent, TaskAgent) and not agent.is_available() and \
-                hasattr(agent, 'resource') and agent.resource and \
-                hasattr(agent.resource, 'cost_per_hour'):
-                 step_cost += agent.resource.cost_per_hour
-        return step_cost
+    def _update_team_social_dynamics(self):
+        for team in self.teams:
+            team.regress_to_mean()
+            if team.is_busy():
+                team.time_on_current_task += 1
+                task_duration = team.current_task.duration
+                if task_duration > 0 and team.time_on_current_task > (task_duration * 1.5):
+                    team.decay_morale(amount=0.02)
 
-    def _calculate_cpi(self) -> float:
-        """Calcula CPI (EV/AC), manejando ceros."""
-        ev = self._calculate_earned_value()
-        ac = self.cumulative_actual_cost
-        if ac > 0: return ev / ac
-        elif ev > 0: return float('inf')
-        else: return 0.0
+    def _introduce_random_events(self):
+        if self.random.random() < 0.02 and self.teams:
+            team_afectado = self.random.choice(self.teams)
+            if self.random.random() < 0.5:
+                team_afectado.decay_morale(amount=0.4)
+                print(
+                    f"** EVENTO (t={self.schedule.time}): ¡Problema técnico! La moral del {team_afectado.name} se resiente.")
+            else:
+                team_afectado.boost_morale(amount=0.3)
+                print(f"** EVENTO (t={self.schedule.time}): ¡Gran avance! El {team_afectado.name} está motivado.")
 
-    def _count_active_agents(self) -> int:
-         """Cuenta agentes que no están disponibles (tienen tarea)."""
-         return sum(1 for agent in self.schedule.agents if not agent.is_available())
-    # --- Fin Funciones Auxiliares ---
+    def _are_dependencies_met(self, task: Task) -> bool:
+        return all(dep.status == "done" for dep in task.dependencies)
 
-    # --- MÉTODO STEP PRINCIPAL DE MESA ---
     def step(self):
-        """Avanza el modelo un paso de tiempo."""
-        step_cost = self._calculate_current_step_cost()
-        self.cumulative_actual_cost += step_cost
-        # Ya NO se llama a self.project.update_project_status()
-        if self.params.reassignment_frequency > 0 and \
-           self.schedule.steps > 0 and \
-           self.schedule.steps % self.params.reassignment_frequency == 0:
-            self._reassign_tasks()
-        self.schedule.step() # <-- Llama a agent.step() y avanza self.schedule.steps
-        self.datacollector.collect(self) # Recolecta datos DESPUÉS de actuar
-        if self.is_simulation_complete(): self.running = False
+        if all(t.status == "done" for t in self.task_map.values()):
+            if self.running:
+                self.datacollector.collect(self)
+                self.running = False
+            return
 
-    # --- Otros métodos (_reassign_tasks, is_simulation_complete, __repr__) ---
-    def _reassign_tasks(self):
-        for agent in self.schedule.agents:
-             if isinstance(agent, TaskAgent) and agent.current_task:
-                task = agent.current_task; task.status = "to-do"; task.assigned_resource = None; agent.release()
+        self.assignment_strategy.assign_tasks()
+        self.schedule.step()
+        self._update_task_progress()
+        self._update_team_social_dynamics()
+        self._introduce_random_events()
+        self.datacollector.collect(self)
 
-    def is_simulation_complete(self) -> bool:
-        if not self.project.tasks: return True
-        if all(task.status == "done" for task in self.project.tasks.values()): return True
-        no_available_tasks = self.project.get_next_available_task() is None
-        all_agents_free = all(agent.is_available() for agent in self.schedule.agents)
-        any_task_not_done = any(task.status != "done" for task in self.project.tasks.values())
-        if any_task_not_done and no_available_tasks and all_agents_free: return True
-        return False
+    def run_model(self):
+        for i in range(self.params.max_steps):
+            if not self.running: break
+            self.step()
 
-    def __repr__(self):
-        return (f"{type(self).__name__}(steps={self.schedule.steps}, agents={len(self.schedule.agents)})")
+    # --- Métodos para el DataCollector ---
+    def get_average_team_morale(self) -> float:
+        if not self.teams: return 0.0
+        return float(np.mean([team.morale for team in self.teams]))
+
+    def get_average_team_cohesion(self) -> float:
+        if not self.teams: return 0.0
+        return float(np.mean([team.cohesion_factor for team in self.teams]))
+
+    def project_completion_percentage(self) -> float:
+        total_duration = sum(t.duration for t in self.task_map.values() if t.duration > 0)
+        if total_duration == 0: return 100.0
+        completed_duration = sum(t.duration * t.progress for t in self.task_map.values())
+        return (completed_duration / total_duration) * 100
+
+    def total_actual_cost(self) -> float:
+        return sum(agent.worked_hours * agent.resource.cost_per_hour for agent in self.project_agents)
+
+    def total_earned_value(self) -> float:
+        return sum(task.estimated_cost * task.progress for task in self.task_map.values())
+
+    def total_planned_value(self) -> float:
+        current_time = self.schedule.time
+        return sum(t.estimated_cost for t in self.task_map.values() if self._is_task_planned_to_start(t, current_time))
+
+    def _is_task_planned_to_start(self, task: Task, current_time: int) -> bool:
+        return all(self.task_map[dep.id].status == "done" for dep in task.dependencies)
+
+    def cost_performance_index(self) -> float:
+        ac = self.total_actual_cost()
+        ev = self.total_earned_value()
+        return ev / ac if ac > 0 else 1.0
+
+    def schedule_performance_index(self) -> float:
+        pv = self.total_planned_value()
+        ev = self.total_earned_value()
+        return ev / pv if pv > 0 else 1.0
