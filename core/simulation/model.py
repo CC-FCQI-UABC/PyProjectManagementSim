@@ -8,7 +8,7 @@ import random
 import numpy as np
 
 # Se importan las clases que el modelo necesita conocer
-from core.entities import Task, Resource, Team
+from core.entities import Task, Resource, Team, TaskStatus
 from core.agents import TaskAgent
 from core.simulation.parameters import SimulationParameters
 from core.simulation.assignment import BaseAssignmentStrategy, STRATEGY_MAP
@@ -79,39 +79,51 @@ class ProjectManagementModel(Model):
             team_members = [self.agents_by_resource_id[res_id] for res_id in member_ids if
                             res_id in self.agents_by_resource_id]
             if team_members:
-                team = Team(team_id, name, team_members)
+                # Extract Resource objects from TaskAgents for Team constructor
+                team_resources = [agent.resource for agent in team_members]
+                team = Team(team_id, name, team_resources)
                 self.teams.append(team)
                 self.team_map[team_id] = team
                 for member_agent in team_members:
                     member_agent.team = team
-                    self.agent_to_team_map[member_agent.unique_id] = team
+                    self.agent_to_team_map[member_agent.resource.id] = team
                 print(f" -> Equipo Creado: {team}")
         print("-" * 20)
 
     def _update_task_progress(self):
         for task in self.task_map.values():
-            if task.status == "done": continue
+            if task.status == TaskStatus.DONE: continue
             work_increment = 0.0
             if task.assigned_team:
                 team = task.assigned_team
-                if not team.is_busy() or team.current_task.id != task.id: continue
-                team_base_work = len(team.members)
-                team_efficiency = team.cohesion_factor
-                work_increment = team_base_work * team_efficiency
-            elif task.assigned_resource:
+                # CORRECTED: Only process if team IS busy AND working on this specific task
+                if team.is_busy() and team.current_task and team.current_task.id == task.id:
+                    team_base_work = len(team.members)
+                    team_efficiency = team.cohesion_factor
+                    work_increment = team_base_work * team_efficiency
+            else:
+                # Check if task is assigned to an individual agent
                 agent = self.agents_by_resource_id.get(task.required_resource_id)
-                if agent and not agent.is_available() and agent.current_task.id == task.id:
+                if agent and not agent.is_available() and agent.current_task and agent.current_task.id == task.id:
                     work_increment = 1.0 * agent.efficiency
             if work_increment > 0:
                 error = random.uniform(-self.params.error_margin, self.params.error_margin)
                 total_work = work_increment * (1 + error)
-                progress_increment = total_work / task.duration if task.duration > 0 else 1.0
+                # Calculate progress as percentage of task completion per step
+                # Each step represents 1 time unit, so progress should be 1/duration per step
+                base_progress_per_step = 1.0 / task.duration if task.duration > 0 else 1.0
+                # Apply work efficiency multiplier
+                progress_increment = base_progress_per_step * total_work
                 task.update_progress(progress_increment)
                 task.real_duration += 1
             if task.progress >= 1.0:
                 if task.assigned_team:
                     task.assigned_team.boost_morale()
-                    for agent in task.assigned_team.members: agent.release()
+                    # Get TaskAgent objects for team members
+                    for resource in task.assigned_team.members:
+                        agent = self.agents_by_resource_id.get(resource.id)
+                        if agent:
+                            agent.release()
                     task.assigned_team.release_task()
                 elif task.assigned_resource:
                     agent = self.agents_by_resource_id.get(task.required_resource_id)
@@ -131,17 +143,16 @@ class ProjectManagementModel(Model):
             team_afectado = self.random.choice(self.teams)
             if self.random.random() < 0.5:
                 team_afectado.decay_morale(amount=0.4)
-                print(
-                    f"** EVENTO (t={self.schedule.time}): ¡Problema técnico! La moral del {team_afectado.name} se resiente.")
+                print(f"Event (t={self.schedule.time}): Technical issue - {team_afectado.name} morale decreased")
             else:
                 team_afectado.boost_morale(amount=0.3)
-                print(f"** EVENTO (t={self.schedule.time}): ¡Gran avance! El {team_afectado.name} está motivado.")
+                print(f"Event (t={self.schedule.time}): Breakthrough - {team_afectado.name} morale increased")
 
     def _are_dependencies_met(self, task: Task) -> bool:
-        return all(dep.status == "done" for dep in task.dependencies)
+        return all(dep.status == TaskStatus.DONE for dep in task.dependencies)
 
     def step(self):
-        if all(t.status == "done" for t in self.task_map.values()):
+        if all(t.status == TaskStatus.DONE for t in self.task_map.values()):
             if self.running:
                 self.datacollector.collect(self)
                 self.running = False
@@ -155,9 +166,18 @@ class ProjectManagementModel(Model):
         self.datacollector.collect(self)
 
     def run_model(self):
-        for i in range(self.params.max_steps):
-            if not self.running: break
+        step_count = 0
+        while self.running and step_count < self.params.max_steps:
             self.step()
+            step_count += 1
+        
+        # Log completion status
+        if not self.running:
+            completed_tasks = sum(1 for t in self.task_map.values() if t.status == TaskStatus.DONE)
+            total_tasks = len(self.task_map)
+            print(f"Simulation completed naturally: {completed_tasks}/{total_tasks} tasks done")
+        else:
+            print(f"Simulation stopped at max_steps limit: {self.params.max_steps}")
 
     # --- Métodos para el DataCollector ---
     def get_average_team_morale(self) -> float:
@@ -185,7 +205,7 @@ class ProjectManagementModel(Model):
         return sum(t.estimated_cost for t in self.task_map.values() if self._is_task_planned_to_start(t, current_time))
 
     def _is_task_planned_to_start(self, task: Task, current_time: int) -> bool:
-        return all(self.task_map[dep.id].status == "done" for dep in task.dependencies)
+        return all(self.task_map[dep.id].status == TaskStatus.DONE for dep in task.dependencies)
 
     def cost_performance_index(self) -> float:
         ac = self.total_actual_cost()

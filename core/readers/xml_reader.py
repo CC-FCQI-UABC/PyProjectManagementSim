@@ -79,6 +79,7 @@ class XmlProjectReader(ProjectReader):
                     res_type_val = int(res_elem.findtext(f'{{{ns}}}Type', default='-1'))
 
                     if res_type_val != XML_RESOURCE_TYPE_WORK: continue
+                    if res_id_val == 0: continue  # Skip resource with ID 0
 
                     res_name = res_elem.findtext(f'{{{ns}}}Name', default=f"Resource_{res_id_val}")
                     std_rate_elem = res_elem.find(f'{{{ns}}}StandardRate')

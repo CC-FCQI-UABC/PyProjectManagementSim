@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from core.entities import Task
+from core.entities import Task, TaskStatus
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .model import ProjectManagementModel
@@ -28,7 +28,7 @@ class BaseAssignmentStrategy(ABC):
     def _get_available_tasks(self) -> List[Task]:
         """Método de ayuda para obtener tareas listas para ser asignadas."""
         return [t for t in self.model.task_map.values() if
-                t.status == "to-do" and self.model._are_dependencies_met(t)]
+                t.status == TaskStatus.TO_DO and self.model._are_dependencies_met(t)]
 
 
 class GreedyAssignmentStrategy(BaseAssignmentStrategy):
@@ -49,12 +49,17 @@ class GreedyAssignmentStrategy(BaseAssignmentStrategy):
                 if not team.is_busy():
                     team.assign_task(task)
                     task.assigned_team = team
-                    for agent in team.members:
-                        agent.assign_task(task)
+                    task.status = TaskStatus.IN_PROGRESS  # Change status when assigned
+                    # Get TaskAgent objects for team members
+                    for resource in team.members:
+                        agent = self.model.agents_by_resource_id.get(resource.id)
+                        if agent:
+                            agent.assign_task(task)
             else:
                 agent = self.model.agents_by_resource_id.get(res_id)
                 if agent and agent.is_available():
                     agent.assign_task(task)
+                    task.status = TaskStatus.IN_PROGRESS  # Change status when assigned
 
 
 # NUEVO: Segunda estrategia de asignación
@@ -80,12 +85,17 @@ class ShortestTaskFirstStrategy(BaseAssignmentStrategy):
                 if not team.is_busy():
                     team.assign_task(task)
                     task.assigned_team = team
-                    for agent in team.members:
-                        agent.assign_task(task)
+                    task.status = TaskStatus.IN_PROGRESS  # Change status when assigned
+                    # Get TaskAgent objects for team members
+                    for resource in team.members:
+                        agent = self.model.agents_by_resource_id.get(resource.id)
+                        if agent:
+                            agent.assign_task(task)
             else:
                 agent = self.model.agents_by_resource_id.get(res_id)
                 if agent and agent.is_available():
                     agent.assign_task(task)
+                    task.status = TaskStatus.IN_PROGRESS  # Change status when assigned
 
 
 # MODIFICADO: Añadimos la nueva estrategia al mapa
