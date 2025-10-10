@@ -1,26 +1,26 @@
 # core/readers/base_reader.py
 from abc import ABC, abstractmethod
-# Importar Project usando ruta absoluta desde core
+# Import Project using absolute path from core
 from core.project import Project
 
 class ProjectReader(ABC):
-    """Interfaz abstracta para lectores de archivos de proyecto."""
+    """Abstract interface for project file readers."""
 
     @abstractmethod
     def load(self, file_path: str) -> Project:
         """
-        Carga datos de proyecto desde un archivo.
+        Load project data from a file.
 
         Args:
-            file_path: Ruta al archivo de proyecto.
+            file_path: Path to the project file.
 
         Returns:
-            Una instancia de Project poblada con tareas, (opcionalmente) recursos,
-            y dependencias.
+            A Project instance populated with tasks, (optionally) resources,
+            and dependencies.
 
         Raises:
-            FileNotFoundError: Si el archivo no se encuentra.
-            ValueError: Si el archivo no se puede leer o procesar.
-            Exception: Otros errores inesperados.
+            FileNotFoundError: If the file is not found.
+            ValueError: If the file cannot be read or processed.
+            Exception: Other unexpected errors.
         """
         pass

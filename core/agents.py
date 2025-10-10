@@ -26,12 +26,12 @@ class TaskAgent(MesaAgent):
         # --- MODIFICACIÓN CLAVE Y DEFINITIVA ---
         # No llamamos a super().__init__() para evitar los conflictos de versiones de Mesa.
         # En su lugar, asignamos manualmente los atributos que la clase base necesita.
-        # Esto hace que nuestro código sea inmune a cómo Mesa maneje su constructor.
+        # This makes our code immune to how Mesa handles its constructor.
         self.unique_id = unique_id
         self.model = model
 
         if not isinstance(resource, Resource):
-            raise TypeError("TaskAgent requiere una instancia válida de Resource.")
+            raise TypeError("TaskAgent requires a valid Resource instance.")
 
         # Atributos propios del agente
         self.resource = resource
@@ -43,7 +43,7 @@ class TaskAgent(MesaAgent):
         self.agent_log_id = f"Agent_{self.resource.id}_{self.resource.name}"
 
     def is_available(self) -> bool:
-        """Verifica si el agente está libre (sin tarea asignada)."""
+        """Check if the agent is free (no assigned task)."""
         return self.current_task is None
 
     def assign_task(self, task: Task):
@@ -56,18 +56,18 @@ class TaskAgent(MesaAgent):
         self.current_task = None
 
     def reset(self):
-        """Resetea el estado del agente para una nueva simulación."""
+        """Reset agent state for a new simulation."""
         self.release()
         self.total_tasks_completed = 0
         self.worked_hours = 0.0
 
     def step(self):
-        """Acción del TaskAgent en cada paso: trabajar si tiene una tarea asignada."""
+        """TaskAgent action in each step: work if it has an assigned task."""
         if not self.is_available():
             self.worked_hours += 1.0
 
     def __repr__(self):
-        """Representación textual mejorada del TaskAgent."""
+        """Improved textual representation of TaskAgent."""
         task_id = self.current_task.id if self.current_task else "Idle"
         team_str = f", team={self.team.id}" if self.team else ""
         return f"TaskAgent(uid={self.unique_id}, res='{self.resource.name}', task={task_id}{team_str})"

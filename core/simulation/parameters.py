@@ -11,5 +11,5 @@ class SimulationParameters:
     max_steps: int = 1000
     team_definitions: List[Dict] = field(default_factory=list)
 
-    # NUEVO: Campo para almacenar el nombre de la estrategia de asignación.
+    # NEW: Field to store the assignment strategy name.
     assignment_strategy: str = "greedy"

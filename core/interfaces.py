@@ -1,9 +1,9 @@
 """
-Interfaces base para el simulador ABP.
+Base interfaces for the ABP simulator.
 
-Este módulo define las interfaces principales que deben implementar
-los diferentes componentes del simulador, siguiendo el principio
-de inversión de dependencias.
+This module defines the main interfaces that must be implemented
+by different simulator components, following the dependency
+inversion principle.
 """
 
 from abc import ABC, abstractmethod
@@ -17,10 +17,10 @@ from core.exceptions import SimulatorException
 @runtime_checkable
 class ITaskProgressCalculator(Protocol):
     """
-    Protocolo para calculadores de progreso de tareas.
+    Protocol for task progress calculators.
     
-    Define la interfaz que deben implementar los componentes
-    responsables de calcular el progreso de las tareas.
+    Defines the interface that must be implemented by components
+    responsible for calculating task progress.
     """
     
     def calculate_progress_increment(
@@ -31,16 +31,16 @@ class ITaskProgressCalculator(Protocol):
         **context
     ) -> float:
         """
-        Calcula el incremento de progreso para una tarea.
+        Calculate progress increment for a task.
         
         Args:
-            task: Tarea para la cual calcular el progreso
-            assigned_resource: Recurso asignado (opcional)
-            assigned_team: Equipo asignado (opcional)
-            **context: Contexto adicional
+            task: Task for which to calculate progress
+            assigned_resource: Assigned resource (optional)
+            assigned_team: Assigned team (optional)
+            **context: Additional context
             
         Returns:
-            Incremento de progreso (0.0 a 1.0)
+            Progress increment (0.0 to 1.0)
         """
         ...
 
@@ -444,7 +444,7 @@ class ProjectData:
     metadata: Dict[str, Any]
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if not self.tasks:
             raise ValueError("El proyecto debe tener al menos una tarea")
         
@@ -471,7 +471,7 @@ class SimulationResult:
     resource_utilization: Dict[int, float]
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if self.simulation_id < 0:
             raise ValueError("simulation_id debe ser >= 0")
         
@@ -495,12 +495,12 @@ class EventInfo:
     affected_entities: List[str]
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if not self.event_type.strip():
-            raise ValueError("event_type no puede estar vacío")
+            raise ValueError("event_type cannot be empty")
         
         if self.timestamp < 0:
             raise ValueError("timestamp debe ser >= 0")
         
         if not self.description.strip():
-            raise ValueError("description no puede estar vacío")
+            raise ValueError("description cannot be empty")

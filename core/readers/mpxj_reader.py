@@ -19,22 +19,22 @@ def _start_jvm(jar_path: str):
     global _jvm_started
     if _jvm_started: return
     if not os.path.exists(jar_path):
-        raise FileNotFoundError(f"MPXJ JAR no encontrado en: {jar_path}. Verifica la variable de entorno MPXJ_JAR o la ruta en mpxj_reader.py.")
+        raise FileNotFoundError(f"MPXJ JAR not found at: {jar_path}. Check MPXJ_JAR environment variable or path in mpxj_reader.py.")
 
     try:
         if not jpype.isJVMStarted():
-            print(f"Info (MPXJ): Iniciando JVM con JAR: {jar_path}...")
+            print(f"Info (MPXJ): Starting JVM with JAR: {jar_path}...")
             jpype.startJVM(classpath=[jar_path], convertStrings=False)
             _jvm_started = True
-            print("Info (MPXJ): JVM iniciada.")
+            print("Info (MPXJ): JVM started.")
         else:
             _jvm_started = True
-            print("Info (MPXJ): JVM ya estaba iniciada.")
+            print("Info (MPXJ): JVM was already started.")
     except Exception as e:
-        print(f"Error Crítico (MPXJ): No se pudo iniciar la JVM: {e}")
+        print(f"Critical Error (MPXJ): Could not start JVM: {e}")
         traceback.print_exc()
         _jvm_started = False
-        raise RuntimeError(f"Fallo al iniciar JVM para MPXJ: {e}")
+        raise RuntimeError(f"Failed to start JVM for MPXJ: {e}")
 
 class MpxjProjectReader(ProjectReader):
     def __init__(self, mpxj_jar_path: str = MPXJ_JAR_PATH):
@@ -57,15 +57,15 @@ class MpxjProjectReader(ProjectReader):
             self.MpxjResource = MpxjResource # NUEVO
             self.MPXJRate = Rate # NUEVO
 
-            print("Info (MPXJReader): Clases Java MPXJ importadas.")
+            print("Info (MPXJReader): Java MPXJ classes imported.")
         except ImportError as e:
-            print(f"Error Crítico (MPXJReader): No se pudieron importar clases MPXJ vía JPype: {e}")
+            print(f"Critical Error (MPXJReader): Could not import MPXJ classes via JPype: {e}")
             traceback.print_exc()
-            raise RuntimeError("Fallo al importar clases MPXJ.")
+            raise RuntimeError("Failed to import MPXJ classes.")
         except Exception as e: # Captura errores más generales de JPype/JVM
-            print(f"Error Crítico (MPXJReader): Error inesperado durante la importación de clases MPXJ: {e}")
+            print(f"Critical Error (MPXJReader): Unexpected error during MPXJ classes import: {e}")
             traceback.print_exc()
-            raise RuntimeError(f"Fallo durante la inicialización de MPXJReader: {e}")
+            raise RuntimeError(f"Failed during MPXJReader initialization: {e}")
 
     def _get_cost_per_hour(self, mpxj_resource: 'MpxjResource') -> float:
         """Intenta obtener el costo por hora de un recurso MPXJ."""
@@ -90,19 +90,19 @@ class MpxjProjectReader(ProjectReader):
                     return rate_amount / hours_per_week
                 # Añadir más conversiones si es necesario (meses, años)
                 else:
-                    print(f"Adv (MPXJReader): Unidad de tasa no manejada '{rate_units}' para Recurso ID {mpxj_resource.getID()}. Usando tasa como está.")
+                    print(f"Adv (MPXJReader): Unhandled rate unit '{rate_units}' for Resource ID {mpxj_resource.getID()}. Using rate as is.")
                     return rate_amount # Devolver sin convertir si la unidad es desconocida
             else:
                  # Intentar obtener del campo Cost si StandardRate no está
                  cost_val = mpxj_resource.getCost()
                  if cost_val is not None:
                      # Advertencia: Este campo 'Cost' puede no ser por hora.
-                     print(f"Adv (MPXJReader): Recurso ID {mpxj_resource.getID()} no tiene StandardRate, usando campo Cost ({cost_val}). Asumiendo que es costo total o no por hora.")
+                     print(f"Adv (MPXJReader): Resource ID {mpxj_resource.getID()} has no StandardRate, using Cost field ({cost_val}). Assuming it's total cost or not per hour.")
                      # No podemos asumir que es por hora, devolver 0 o el valor con advertencia.
                      # return float(str(cost_val)) # Podría ser incorrecto
                      return 0.0 # Más seguro devolver 0 si no hay tasa por hora
         except Exception as e:
-            print(f"Adv (MPXJReader): Error obteniendo costo/h para Recurso ID {mpxj_resource.getID()}: {e}")
+            print(f"Adv (MPXJReader): Error getting cost/h for Resource ID {mpxj_resource.getID()}: {e}")
         return 0.0 # Costo por defecto si no se puede obtener
 
     def load(self, file_path: str) -> Project:

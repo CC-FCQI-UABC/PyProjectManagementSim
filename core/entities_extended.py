@@ -38,7 +38,7 @@ class ResourceStatus(Enum):
 
 @dataclass
 class ResourceMetrics:
-    """Métricas asociadas a un recurso."""
+    """Metrics associated with a resource."""
     total_hours_worked: float = 0.0
     total_tasks_completed: int = 0
     average_efficiency: float = 1.0
@@ -117,7 +117,7 @@ class Resource:
         self._skills = skills or []
         self._metadata = metadata or {}
         
-        # Métricas
+        # Metrics
         self._metrics = ResourceMetrics()
         
         logger.debug(f"Recurso creado: {self}")
@@ -130,7 +130,7 @@ class Resource:
         efficiency: float,
         availability: float
     ) -> None:
-        """Valida los parámetros del constructor."""
+        """Validate constructor parameters."""
         if not isinstance(resource_id, int) or resource_id <= 0:
             raise ValidationError(
                 f"resource_id debe ser un entero positivo, recibido: {resource_id}",
@@ -140,21 +140,21 @@ class Resource:
         
         if not isinstance(name, str) or not name.strip():
             raise ValidationError(
-                f"name debe ser una cadena no vacía, recibido: '{name}'",
+                f"name must be a non-empty string, received: '{name}'",
                 field="name",
                 value=name
             )
         
         if not isinstance(cost_per_hour, (int, float)) or cost_per_hour < 0:
             raise ValidationError(
-                f"cost_per_hour debe ser un número >= 0, recibido: {cost_per_hour}",
+                f"cost_per_hour must be a number >= 0, received: {cost_per_hour}",
                 field="cost_per_hour",
                 value=cost_per_hour
             )
         
         if not isinstance(efficiency, (int, float)) or efficiency <= 0:
             raise ValidationError(
-                f"efficiency debe ser un número > 0, recibido: {efficiency}",
+                f"efficiency must be a number > 0, received: {efficiency}",
                 field="efficiency",
                 value=efficiency
             )
@@ -169,7 +169,7 @@ class Resource:
     # Properties
     @property
     def id(self) -> int:
-        """ID único del recurso."""
+        """Unique resource ID."""
         return self._id
     
     @property
@@ -182,7 +182,7 @@ class Resource:
         """Establece el nombre del recurso."""
         if not isinstance(value, str) or not value.strip():
             raise ValidationError(
-                f"name debe ser una cadena no vacía, recibido: '{value}'",
+                f"name must be a non-empty string, received: '{value}'",
                 field="name",
                 value=value
             )
@@ -203,7 +203,7 @@ class Resource:
         """Establece el costo por hora."""
         if not isinstance(value, (int, float)) or value < 0:
             raise ValidationError(
-                f"cost_per_hour debe ser un número >= 0, recibido: {value}",
+                f"cost_per_hour must be a number >= 0, received: {value}",
                 field="cost_per_hour",
                 value=value
             )
@@ -219,7 +219,7 @@ class Resource:
         """Establece el factor de eficiencia."""
         if not isinstance(value, (int, float)) or value <= 0:
             raise ValidationError(
-                f"efficiency debe ser un número > 0, recibido: {value}",
+                f"efficiency must be a number > 0, received: {value}",
                 field="efficiency",
                 value=value
             )
@@ -258,10 +258,10 @@ class Resource:
     
     @property
     def metrics(self) -> ResourceMetrics:
-        """Métricas del recurso."""
+        """Resource metrics."""
         return self._metrics
     
-    # Métodos de negocio
+    # Business methods
     def is_available(self) -> bool:
         """
         Verifica si el recurso está disponible.
@@ -301,7 +301,7 @@ class Resource:
         """
         if isinstance(skill, str) and skill.strip() and skill not in self._skills:
             self._skills.append(skill.strip())
-            logger.debug(f"Habilidad '{skill}' añadida al recurso {self.id}")
+            logger.debug(f"Skill '{skill}' added to resource {self.id}")
     
     def remove_skill(self, skill: str) -> None:
         """
@@ -362,7 +362,7 @@ class Resource:
         self._metrics.total_tasks_completed += 1
         self._metrics.update_efficiency(efficiency)
         
-        logger.debug(f"Métricas actualizadas para recurso {self.id}")
+        logger.debug(f"Metrics updated for resource {self.id}")
     
     def get_effective_cost_per_hour(self) -> float:
         """
@@ -373,9 +373,9 @@ class Resource:
         """
         return self._cost_per_hour / (self._efficiency * self._availability)
     
-    # Métodos especiales
+    # Special methods
     def __eq__(self, other: object) -> bool:
-        """Comparación de igualdad basada en ID."""
+        """Equality comparison based on ID."""
         if not isinstance(other, Resource):
             return False
         return self._id == other._id
@@ -385,7 +385,7 @@ class Resource:
         return hash(self._id)
     
     def __repr__(self) -> str:
-        """Representación textual del recurso."""
+        """Textual representation of the resource."""
         return (
             f"Resource(id={self._id}, name='{self._name}', "
             f"type={self._resource_type.value}, cost={self._cost_per_hour:.2f}/h, "
@@ -394,7 +394,7 @@ class Resource:
         )
     
     def __str__(self) -> str:
-        """Representación legible del recurso."""
+        """Readable representation of the resource."""
         return f"Recurso {self._id}: {self._name} ({self._resource_type.value})"
 
 
@@ -456,7 +456,7 @@ class Team:
         members: List[Resource],
         initial_morale: float
     ) -> None:
-        """Valida los parámetros del constructor."""
+        """Validate constructor parameters."""
         if not isinstance(team_id, int) or team_id <= 0:
             raise ValidationError(
                 f"team_id debe ser un entero positivo, recibido: {team_id}",
@@ -466,14 +466,14 @@ class Team:
         
         if not isinstance(name, str) or not name.strip():
             raise ValidationError(
-                f"name debe ser una cadena no vacía, recibido: '{name}'",
+                f"name must be a non-empty string, received: '{name}'",
                 field="name",
                 value=name
             )
         
         if not isinstance(members, list) or not members:
             raise ValidationError(
-                f"members debe ser una lista no vacía de Resource, recibido: {type(members)}",
+                f"members must be a non-empty list of Resource, received: {type(members)}",
                 field="members",
                 value=members
             )
@@ -496,7 +496,7 @@ class Team:
     # Properties
     @property
     def id(self) -> int:
-        """ID único del equipo."""
+        """Unique team ID."""
         return self._id
     
     @property
@@ -509,7 +509,7 @@ class Team:
         """Establece el nombre del equipo."""
         if not isinstance(value, str) or not value.strip():
             raise ValidationError(
-                f"name debe ser una cadena no vacía, recibido: '{value}'",
+                f"name must be a non-empty string, received: '{value}'",
                 field="name",
                 value=value
             )
@@ -561,7 +561,7 @@ class Team:
         """Metadatos del equipo."""
         return self._metadata.copy()
     
-    # Métodos de negocio
+    # Business methods
     def add_member(self, member: Resource) -> None:
         """
         Añade un miembro al equipo.
@@ -581,7 +581,7 @@ class Team:
         
         if member not in self._members:
             self._members.append(member)
-            logger.debug(f"Miembro {member.id} añadido al equipo {self.id}")
+            logger.debug(f"Member {member.id} added to team {self.id}")
     
     def remove_member(self, member: Resource) -> None:
         """
@@ -603,7 +603,7 @@ class Team:
         """
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValidationError(
-                f"amount debe ser un número > 0, recibido: {amount}",
+                f"amount must be a number > 0, received: {amount}",
                 field="amount",
                 value=amount
             )
@@ -621,7 +621,7 @@ class Team:
         """
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValidationError(
-                f"amount debe ser un número > 0, recibido: {amount}",
+                f"amount must be a number > 0, received: {amount}",
                 field="amount",
                 value=amount
             )
@@ -740,9 +740,9 @@ class Team:
         """
         return self._metadata.get(key, default)
     
-    # Métodos especiales
+    # Special methods
     def __eq__(self, other: object) -> bool:
-        """Comparación de igualdad basada en ID."""
+        """Equality comparison based on ID."""
         if not isinstance(other, Team):
             return False
         return self._id == other._id
@@ -752,7 +752,7 @@ class Team:
         return hash(self._id)
     
     def __len__(self) -> int:
-        """Número de miembros del equipo."""
+        """Number of team members."""
         return len(self._members)
     
     def __contains__(self, member: Resource) -> bool:
@@ -760,7 +760,7 @@ class Team:
         return member in self._members
     
     def __repr__(self) -> str:
-        """Representación textual del equipo."""
+        """Textual representation of the team."""
         member_ids = [member.id for member in self._members]
         task_id = self._current_task.id if self._current_task else None
         
@@ -771,5 +771,5 @@ class Team:
         )
     
     def __str__(self) -> str:
-        """Representación legible del equipo."""
+        """Readable representation of the team."""
         return f"Equipo {self._id}: {self._name} ({len(self._members)} miembros)"

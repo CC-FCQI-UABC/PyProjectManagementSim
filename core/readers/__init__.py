@@ -1,8 +1,8 @@
 """
-Módulo de lectores de proyectos mejorado.
+Improved project readers module.
 
-Este módulo contiene el sistema mejorado de lectores
-con Factory pattern y validación post-carga.
+This module contains the improved reader system
+with Factory pattern and post-load validation.
 """
 
 from .factory import (
@@ -17,19 +17,7 @@ from .factory import (
     get_factory_stats
 )
 
-from .validator import (
-    ProjectDataValidator,
-    ValidationResult,
-    project_data_validator,
-    validate_project_data,
-    add_validation_rule,
-    add_custom_validator,
-    get_validation_stats
-)
-
-from .base_reader_improved import BaseProjectReader
-
-# Importar lectores existentes para registro automático
+# Import existing readers for automatic registration
 from .xml_reader import XmlProjectReader
 from .mpxj_reader import MpxjProjectReader
 from .aspose_reader import AsposeProjectReader
@@ -45,18 +33,6 @@ __all__ = [
     'get_reader_info',
     'validate_reader',
     'get_factory_stats',
-    
-    # Validator
-    'ProjectDataValidator',
-    'ValidationResult',
-    'project_data_validator',
-    'validate_project_data',
-    'add_validation_rule',
-    'add_custom_validator',
-    'get_validation_stats',
-    
-    # Base Reader
-    'BaseProjectReader',
     
     # Specific Readers
     'XmlProjectReader',

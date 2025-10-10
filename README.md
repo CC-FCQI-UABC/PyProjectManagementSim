@@ -4,18 +4,18 @@
 
 ## Features
 
-✨ **Core Functionality**
+**Core Functionality**
 - Agent-based project simulation
 - Multiple assignment strategies
 - Real-time metrics calculation
 - XML/MPP project file support
 
-🔧 **Configuration**
+**Configuration**
 - Flexible simulation parameters
 - Multiple assignment strategies
 - Customizable team dynamics
 
-📊 **Metrics**
+**Metrics**
 - Cost Performance Index (CPI)
 - Schedule Performance Index (SPI)
 - Earned Value Management (EVM)

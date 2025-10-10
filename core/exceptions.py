@@ -39,7 +39,7 @@ class SimulatorException(Exception):
         self.context = context or {}
     
     def __str__(self) -> str:
-        """Representación textual de la excepción."""
+        """Textual representation of the exception."""
         parts = [self.message]
         
         if self.field:
@@ -190,7 +190,7 @@ def handle_exception(exc: Exception, context: Optional[dict] = None) -> Simulato
     if isinstance(exc, SimulatorException):
         return exc
     
-    # Mapeo de excepciones comunes a excepciones específicas
+    # Mapping of common exceptions to specific exceptions
     if isinstance(exc, FileNotFoundError):
         return ReaderError(
             f"Archivo no encontrado: {exc}",
@@ -203,7 +203,7 @@ def handle_exception(exc: Exception, context: Optional[dict] = None) -> Simulato
         )
     elif isinstance(exc, ValueError):
         return ValidationError(
-            f"Valor inválido: {exc}",
+            f"Invalid value: {exc}",
             context=context
         )
     elif isinstance(exc, KeyError):
@@ -250,14 +250,14 @@ def validate_positive_number(value: Any, field_name: str) -> None:
     """
     if not isinstance(value, (int, float)):
         raise ValidationError(
-            f"{field_name} debe ser un número",
+            f"{field_name} must be a number",
             field=field_name,
             value=value
         )
     
     if value < 0:
         raise ValidationError(
-            f"{field_name} debe ser un número positivo",
+            f"{field_name} must be a positive number",
             field=field_name,
             value=value
         )
@@ -283,7 +283,7 @@ def validate_non_empty_string(value: Any, field_name: str) -> None:
     
     if not value.strip():
         raise ValidationError(
-            f"{field_name} no puede estar vacío",
+            f"{field_name} cannot be empty",
             field=field_name,
             value=value
         )

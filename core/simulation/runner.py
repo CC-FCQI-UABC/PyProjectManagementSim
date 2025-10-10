@@ -59,7 +59,7 @@ class SimulationRunner:
         os.makedirs(self.output_dir, exist_ok=True)
 
     def _prepare_project(self) -> Project:
-        print(f"Info (Runner): Preparando proyecto desde '{self.project_file_path}'...")
+        print(f"Info (Runner): Preparing project from '{self.project_file_path}'...")
         reader = get_reader(self.config.reader_type)
         project_data = reader.load(self.project_file_path)
         project = Project(project_data)
@@ -72,7 +72,7 @@ class SimulationRunner:
 
     def run(self):
         main_start_time = datetime.now()
-        print(f"\n--- Iniciando {self.config.num_simulations} Simulaciones ---")
+        print(f"\n--- Starting {self.config.num_simulations} Simulations ---")
 
         all_run_dataframes = []  # MODIFICADO: Ahora almacenaremos DataFrames completos
 
@@ -85,10 +85,10 @@ class SimulationRunner:
                 team_definitions=self.config.team_definitions,
                 assignment_strategy=self.config.assignment_strategy
             )
-            print(f"Info (Runner): Parámetros de simulación listos: {sim_params}")
+            print(f"Info (Runner): Simulation parameters ready: {sim_params}")
 
             for i in range(1, self.config.num_simulations + 1):
-                print(f"--- Simulación {i}/{self.config.num_simulations} ---")
+                print(f"--- Simulation {i}/{self.config.num_simulations} ---")
                 try:
                     tasks_for_run = project_template.get_tasks_for_simulation()
                     resources_for_run = project_template.get_resources_for_simulation()

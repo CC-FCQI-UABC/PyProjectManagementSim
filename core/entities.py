@@ -40,7 +40,7 @@ class TaskPriority(Enum):
 
 @dataclass
 class TaskMetrics:
-    """Métricas asociadas a una tarea."""
+    """Metrics associated with a task."""
     planned_duration: float
     planned_cost: float
     actual_duration: float = 0.0
@@ -49,7 +49,7 @@ class TaskMetrics:
     
     @property
     def duration_variance(self) -> float:
-        """Varianza en la duración (positiva = retraso)."""
+        """Variance in duration (positive = delay)."""
         return self.actual_duration - self.planned_duration
     
     @property
@@ -126,7 +126,7 @@ class Task:
         self._id = task_id
         self._name = name
         self._duration = max(0.0, duration)
-        self._real_duration = 0.0  # Duración real acumulada
+        self._real_duration = 0.0  # Real accumulated duration
         self._estimated_cost = max(0.0, estimated_cost)
         self._status = TaskStatus.TO_DO
         self._progress = 0.0
@@ -140,7 +140,7 @@ class Task:
         self._required_resource_id: Optional[int] = None
         self._assigned_team: Optional[Team] = None
         
-        # Métricas
+        # Metrics
         self._metrics = TaskMetrics(
             planned_duration=self._duration,
             planned_cost=self._estimated_cost
@@ -155,7 +155,7 @@ class Task:
         duration: float, 
         estimated_cost: float
     ) -> None:
-        """Valida los parámetros del constructor."""
+        """Validate constructor parameters."""
         if not isinstance(task_id, int) or task_id <= 0:
             raise ValidationError(
                 f"task_id debe ser un entero positivo, recibido: {task_id}",
@@ -165,21 +165,21 @@ class Task:
         
         if not isinstance(name, str) or not name.strip():
             raise ValidationError(
-                f"name debe ser una cadena no vacía, recibido: '{name}'",
+                f"name must be a non-empty string, received: '{name}'",
                 field="name",
                 value=name
             )
         
         if not isinstance(duration, (int, float)) or duration < 0:
             raise ValidationError(
-                f"duration debe ser un número >= 0, recibido: {duration}",
+                f"duration must be a number >= 0, received: {duration}",
                 field="duration",
                 value=duration
             )
         
         if not isinstance(estimated_cost, (int, float)) or estimated_cost < 0:
             raise ValidationError(
-                f"estimated_cost debe ser un número >= 0, recibido: {estimated_cost}",
+                f"estimated_cost must be a number >= 0, received: {estimated_cost}",
                 field="estimated_cost",
                 value=estimated_cost
             )
@@ -187,7 +187,7 @@ class Task:
     # Properties
     @property
     def id(self) -> int:
-        """ID único de la tarea."""
+        """Unique task ID."""
         return self._id
     
     @property
@@ -208,7 +208,7 @@ class Task:
     
     @property
     def duration(self) -> float:
-        """Duración estimada en horas."""
+        """Estimated duration in hours."""
         return self._duration
     
     @duration.setter
@@ -345,7 +345,7 @@ class Task:
         """Métricas de la tarea."""
         return self._metrics
     
-    # Métodos de negocio
+    # Business methods
     def update_progress(self, increment: float) -> None:
         """
         Actualiza el progreso de la tarea.
@@ -367,7 +367,7 @@ class Task:
             logger.warning(f"Intentando actualizar progreso de tarea completada: {self.id}")
             return
         
-        # Actualizar estado según progreso
+        # Update state according to progress
         if self._status == TaskStatus.TO_DO and increment > 0:
             self._status = TaskStatus.IN_PROGRESS
             logger.debug(f"Tarea {self.id} iniciada")
@@ -382,7 +382,7 @@ class Task:
             self._progress = 1.0
             logger.info(f"Tarea {self.id} completada")
         
-        # Actualizar métricas
+        # Update metrics
         if increment > 0:
             self._metrics.actual_duration += increment
         
@@ -535,7 +535,7 @@ class Task:
         """
         return self._metadata.get(key, default)
     
-    # Métodos especiales
+    # Special methods
     def __eq__(self, other: object) -> bool:
         """Comparación de igualdad basada en ID."""
         if not isinstance(other, Task):

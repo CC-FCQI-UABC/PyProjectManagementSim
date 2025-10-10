@@ -1,8 +1,8 @@
 """
-Factory para la creación de lectores de proyectos.
+Factory for project reader creation.
 
-Este módulo implementa el patrón Factory para la creación
-automática de lectores basándose en el tipo de archivo.
+This module implements the Factory pattern for automatic
+reader creation based on file type.
 """
 
 from typing import Dict, Type, Optional, List, Any
@@ -20,19 +20,19 @@ logger = get_logger(__name__)
 
 class ReaderFactory:
     """
-    Factory para la creación de lectores de proyectos.
+    Factory for project reader creation.
     
-    Implementa el patrón Factory para crear lectores
-    automáticamente basándose en el tipo de archivo.
+    Implements the Factory pattern to create readers
+    automatically based on file type.
     """
     
     def __init__(self):
-        """Inicializa el factory de lectores."""
+        """Initialize the reader factory."""
         self._readers: Dict[str, Type[IProjectReader]] = {}
         self._file_extensions: Dict[str, str] = {}
         self._reader_configs: Dict[str, Dict[str, Any]] = {}
         
-        logger.info("ReaderFactory inicializado")
+        logger.info("ReaderFactory initialized")
     
     def register_reader(
         self,
@@ -42,36 +42,36 @@ class ReaderFactory:
         config: Optional[Dict[str, Any]] = None
     ) -> None:
         """
-        Registra un nuevo tipo de lector.
+        Register a new reader type.
         
         Args:
-            reader_type: Tipo de lector (ej: 'xml', 'mpxj')
-            reader_class: Clase del lector
-            supported_extensions: Extensiones de archivo soportadas
-            config: Configuración del lector
+            reader_type: Reader type (e.g.: 'xml', 'mpxj')
+            reader_class: Reader class
+            supported_extensions: Supported file extensions
+            config: Reader configuration
             
         Raises:
-            ValidationError: Si los parámetros no son válidos
+            ValidationError: If parameters are not valid
         """
         if not issubclass(reader_class, IProjectReader):
             raise ValidationError(
-                f"reader_class debe implementar IProjectReader, recibido: {reader_class}",
+                f"reader_class must implement IProjectReader, received: {reader_class}",
                 field="reader_class",
                 value=reader_class
             )
         
         if not supported_extensions:
             raise ValidationError(
-                "supported_extensions no puede estar vacío",
+                "supported_extensions cannot be empty",
                 field="supported_extensions",
                 value=supported_extensions
             )
         
-        # Registrar lector
+        # Register reader
         self._readers[reader_type] = reader_class
         self._reader_configs[reader_type] = config or {}
         
-        # Registrar extensiones
+        # Register extensions
         for ext in supported_extensions:
             ext = ext.lower().lstrip('.')
             self._file_extensions[ext] = reader_type
@@ -79,7 +79,7 @@ class ReaderFactory:
         log_with_context(
             logger,
             logger.info,
-            f"Lector registrado: {reader_type}",
+            f"Reader registered: {reader_type}",
             context={
                 'reader_type': reader_type,
                 'reader_class': reader_class.__name__,
@@ -95,27 +95,27 @@ class ReaderFactory:
         **kwargs
     ) -> IProjectReader:
         """
-        Crea un lector para un archivo específico.
+        Create a reader for a specific file.
         
         Args:
-            file_path: Ruta al archivo del proyecto
-            reader_type: Tipo de lector (opcional, se infiere del archivo)
-            **kwargs: Parámetros adicionales
+            file_path: Path to the project file
+            reader_type: Reader type (optional, inferred from file)
+            **kwargs: Additional parameters
             
         Returns:
-            Instancia del lector
+            Reader instance
             
         Raises:
-            ReaderError: Si hay problemas creando el lector
+            ReaderError: If there are problems creating the reader
         """
         try:
-            # Determinar tipo de lector
+            # Determine reader type
             if reader_type is None:
                 reader_type = self._get_reader_type_from_file(file_path)
             
             if reader_type not in self._readers:
                 raise ReaderError(
-                    f"Tipo de lector '{reader_type}' no soportado",
+                    f"Reader type '{reader_type}' not supported",
                     context={
                         'file_path': file_path,
                         'reader_type': reader_type,
@@ -123,22 +123,22 @@ class ReaderFactory:
                     }
                 )
             
-            # Obtener clase del lector
+            # Get reader class
             reader_class = self._readers[reader_type]
             
-            # Obtener configuración
+            # Get configuration
             config = self._reader_configs.get(reader_type, {})
             
-            # Combinar configuración con kwargs
+            # Combine configuration with kwargs
             all_params = {**config, **kwargs}
             
-            # Crear instancia
+            # Create instance
             reader = reader_class(**all_params)
             
             log_with_context(
                 logger,
                 logger.debug,
-                f"Lector creado: {reader_type}",
+                f"Reader created: {reader_type}",
                 context={
                     'file_path': file_path,
                     'reader_type': reader_type,
@@ -151,22 +151,22 @@ class ReaderFactory:
             
         except Exception as e:
             raise ReaderError(
-                f"Error creando lector para '{file_path}': {e}",
+                f"Error creating reader for '{file_path}': {e}",
                 context={'file_path': file_path, 'reader_type': reader_type}
             ) from e
     
     def _get_reader_type_from_file(self, file_path: str) -> str:
         """
-        Determina el tipo de lector basándose en la extensión del archivo.
+        Determine reader type based on file extension.
         
         Args:
-            file_path: Ruta al archivo
+            file_path: Path to the file
             
         Returns:
-            Tipo de lector
+            Reader type
             
         Raises:
-            ReaderError: Si no se puede determinar el tipo
+            ReaderError: If type cannot be determined
         """
         try:
             file_path = Path(file_path)
@@ -174,7 +174,7 @@ class ReaderFactory:
             
             if extension not in self._file_extensions:
                 raise ReaderError(
-                    f"Extensión de archivo '{extension}' no soportada",
+                    f"File extension '{extension}' not supported",
                     context={
                         'file_path': file_path,
                         'extension': extension,
@@ -186,37 +186,37 @@ class ReaderFactory:
             
         except Exception as e:
             raise ReaderError(
-                f"Error determinando tipo de lector: {e}",
+                f"Error determining reader type: {e}",
                 context={'file_path': file_path}
             ) from e
     
     def get_supported_extensions(self) -> List[str]:
         """
-        Obtiene todas las extensiones soportadas.
+        Get all supported extensions.
         
         Returns:
-            Lista de extensiones soportadas
+            List of supported extensions
         """
         return list(self._file_extensions.keys())
     
     def get_reader_types(self) -> List[str]:
         """
-        Obtiene todos los tipos de lectores registrados.
+        Get all registered reader types.
         
         Returns:
-            Lista de tipos de lectores
+            List of reader types
         """
         return list(self._readers.keys())
     
     def get_reader_info(self, reader_type: str) -> Optional[Dict[str, Any]]:
         """
-        Obtiene información sobre un tipo de lector.
+        Get information about a reader type.
         
         Args:
-            reader_type: Tipo de lector
+            reader_type: Reader type
             
         Returns:
-            Información del lector o None
+            Reader information or None
         """
         if reader_type not in self._readers:
             return None
@@ -224,7 +224,7 @@ class ReaderFactory:
         reader_class = self._readers[reader_type]
         config = self._reader_configs.get(reader_type, {})
         
-        # Obtener extensiones soportadas
+        # Get supported extensions
         supported_extensions = [
             ext for ext, rt in self._file_extensions.items() 
             if rt == reader_type
@@ -240,47 +240,47 @@ class ReaderFactory:
     
     def validate_reader(self, reader_type: str) -> List[str]:
         """
-        Valida un tipo de lector registrado.
+        Validate a registered reader type.
         
         Args:
-            reader_type: Tipo de lector
+            reader_type: Reader type
             
         Returns:
-            Lista de errores de validación
+            List of validation errors
         """
         errors = []
         
         if reader_type not in self._readers:
-            errors.append(f"Tipo de lector '{reader_type}' no encontrado")
+            errors.append(f"Reader type '{reader_type}' not found")
             return errors
         
         try:
             reader_class = self._readers[reader_type]
             
-            # Verificar métodos requeridos
+            # Check required methods
             required_methods = ['load', 'validate_data', 'get_supported_extensions']
             for method_name in required_methods:
                 if not hasattr(reader_class, method_name):
-                    errors.append(f"Método '{method_name}' no encontrado en {reader_class.__name__}")
+                    errors.append(f"Method '{method_name}' not found in {reader_class.__name__}")
             
-            # Verificar parámetros de constructor
+            # Check constructor parameters
             sig = inspect.signature(reader_class.__init__)
             for param_name, param in sig.parameters.items():
                 if param_name != 'self' and param.default == inspect.Parameter.empty:
                     if param_name not in self._reader_configs.get(reader_type, {}):
-                        errors.append(f"Parámetro requerido '{param_name}' no especificado")
+                        errors.append(f"Required parameter '{param_name}' not specified")
             
         except Exception as e:
-            errors.append(f"Error validando lector: {e}")
+            errors.append(f"Error validating reader: {e}")
         
         return errors
     
     def get_factory_stats(self) -> Dict[str, Any]:
         """
-        Obtiene estadísticas del factory.
+        Get factory statistics.
         
         Returns:
-            Diccionario con estadísticas
+            Dictionary with statistics
         """
         return {
             'total_readers': len(self._readers),
@@ -291,20 +291,20 @@ class ReaderFactory:
         }
     
     def clear_registry(self) -> None:
-        """Limpia el registro de lectores."""
+        """Clear the reader registry."""
         self._readers.clear()
         self._file_extensions.clear()
         self._reader_configs.clear()
-        logger.info("Registro de lectores limpiado")
+        logger.info("Reader registry cleared")
 
 
-# Instancia global del factory
+# Global factory instance
 reader_factory = ReaderFactory()
 
 
-# Funciones de conveniencia
+# Convenience functions
 def create_reader(file_path: str, reader_type: Optional[str] = None, **kwargs) -> IProjectReader:
-    """Crea un lector para un archivo específico."""
+    """Create a reader for a specific file."""
     return reader_factory.create_reader(file_path, reader_type, **kwargs)
 
 
@@ -314,30 +314,30 @@ def register_reader(
     supported_extensions: List[str],
     config: Optional[Dict[str, Any]] = None
 ) -> None:
-    """Registra un nuevo tipo de lector."""
+    """Register a new reader type."""
     reader_factory.register_reader(reader_type, reader_class, supported_extensions, config)
 
 
 def get_supported_extensions() -> List[str]:
-    """Obtiene todas las extensiones soportadas."""
+    """Get all supported extensions."""
     return reader_factory.get_supported_extensions()
 
 
 def get_reader_types() -> List[str]:
-    """Obtiene todos los tipos de lectores registrados."""
+    """Get all registered reader types."""
     return reader_factory.get_reader_types()
 
 
 def get_reader_info(reader_type: str) -> Optional[Dict[str, Any]]:
-    """Obtiene información sobre un tipo de lector."""
+    """Get information about a reader type."""
     return reader_factory.get_reader_info(reader_type)
 
 
 def validate_reader(reader_type: str) -> List[str]:
-    """Valida un tipo de lector registrado."""
+    """Validate a registered reader type."""
     return reader_factory.validate_reader(reader_type)
 
 
 def get_factory_stats() -> Dict[str, Any]:
-    """Obtiene estadísticas del factory."""
+    """Get factory statistics."""
     return reader_factory.get_factory_stats()

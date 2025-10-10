@@ -51,7 +51,7 @@ class ProjectManagementModel(Model):
         if not strategy_class:
             raise ValueError(f"Estrategia de asignación desconocida: '{params.assignment_strategy}'")
         self.assignment_strategy: BaseAssignmentStrategy = strategy_class(self)
-        print(f"Info (Model): Usando estrategia: {strategy_class.__name__}")
+        print(f"Info (Model): Using strategy: {strategy_class.__name__}")
 
         # El colector de datos con todas las métricas, incluyendo las de equipo
         self.datacollector = DataCollector(
@@ -72,7 +72,7 @@ class ProjectManagementModel(Model):
     def _create_teams_from_config(self):
         team_definitions = self.params.team_definitions
         if not team_definitions: return
-        print("\nCreando equipos desde la configuración...")
+        print("\nCreating teams from configuration...")
         for team_def in team_definitions:
             team_id, name, member_ids = team_def.get("id"), team_def.get("name"), team_def.get("member_resource_ids",
                                                                                                [])
@@ -87,7 +87,7 @@ class ProjectManagementModel(Model):
                 for member_agent in team_members:
                     member_agent.team = team
                     self.agent_to_team_map[member_agent.resource.id] = team
-                print(f" -> Equipo Creado: {team}")
+                print(f" -> Team Created: {team}")
         print("-" * 20)
 
     def _update_task_progress(self):

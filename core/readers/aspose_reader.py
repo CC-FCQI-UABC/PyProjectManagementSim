@@ -6,7 +6,7 @@ from typing import Dict, Optional
 # --- Importaciones de Aspose ---
 try:
     import aspose.tasks as tasks
-    print("Info (AsposeReader): Librería 'aspose-tasks' importada.")
+    print("Info (AsposeReader): 'aspose-tasks' library imported.")
 except ImportError:
     # ... (manejo de error de importación) ...
     raise ImportError("Librería 'aspose-tasks' no encontrada.")
@@ -48,7 +48,7 @@ class AsposeProjectReader(ProjectReader):
             if std_rate_format_enum == tasks.RateFormatType.MATERIAL: return 0.0
             return 0.0 # Default
         except AttributeError: pass # Ignorar si faltan atributos de costo/tasa
-        except Exception as e: print(f"Adv (AsposeReader Costo): Excepción obteniendo costo/h para Recurso ID {getattr(aspose_resource, 'id', 'N/A')}: {e}")
+        except Exception as e: print(f"Adv (AsposeReader Cost): Exception getting cost/h for Resource ID {getattr(aspose_resource, 'id', 'N/A')}: {e}")
         return 0.0
 
     def _get_aspose_duration_hours(self, aspose_task: tasks.Task) -> float:
@@ -68,14 +68,14 @@ class AsposeProjectReader(ProjectReader):
                  if duration_unit == tasks.TimeUnitType.WEEK: return duration_value * 40.0
                  return duration_value # Devolver como está si no se maneja la unidad
         except AttributeError: pass # Ignorar si falta atributo duration
-        except Exception as e: print(f"Adv (AsposeReader Duración): Excepción convirtiendo duración a horas para Tarea UID {getattr(aspose_task, 'unique_id', 'N/A')}: {e}")
+        except Exception as e: print(f"Adv (AsposeReader Duration): Exception converting duration to hours for Task UID {getattr(aspose_task, 'unique_id', 'N/A')}: {e}")
         return 0.0
 
     def load(self, file_path: str) -> Project:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"AsposeReader: Archivo no encontrado: {file_path}")
 
-        print(f"Info (AsposeReader): Cargando proyecto desde '{file_path}'...")
+        print(f"Info (AsposeReader): Loading project from '{file_path}'...")
         project = Project()
         project._clear_project_data()
         resource_map: Dict[int, Resource] = {}

@@ -55,7 +55,7 @@ class XmlProjectReader(ProjectReader):
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"XmlReader: Archivo no encontrado: {file_path}")
 
-        print(f"Info (XmlReader): Cargando proyecto desde '{file_path}'...")
+        print(f"Info (XmlReader): Loading project from '{file_path}'...")
 
         tasks: Dict[int, Task] = {}
         resources: Dict[int, Resource] = {}
@@ -66,7 +66,7 @@ class XmlProjectReader(ProjectReader):
             ns = self._get_namespace(root)
             if not ns: raise ValueError("No se pudo encontrar el namespace principal en el XML.")
             ns_map = {'p': ns}
-            print(f"Info (XmlReader): Usando namespace: {ns}")
+            print(f"Info (XmlReader): Using namespace: {ns}")
 
             project_name = root.findtext(f'{{{ns}}}Name', default='Unnamed Project')
 
@@ -120,7 +120,7 @@ class XmlProjectReader(ProjectReader):
 
             # --- 4. Procesar Dependencias ---
             dependency_elements = root.findall('.//p:PredecessorLink', ns_map)
-            print(f"Info (XmlReader): Procesando {len(dependency_elements)} dependencias...")
+            print(f"Info (XmlReader): Processing {len(dependency_elements)} dependencies...")
             for link in dependency_elements:
                 pred_uid_text = link.findtext('p:PredecessorUID', namespaces=ns_map)
                 succ_uid_text = link.findtext('p:SuccessorUID', namespaces=ns_map)
@@ -141,10 +141,10 @@ class XmlProjectReader(ProjectReader):
             # --- 5. Finalizar y Devolver ProjectData ---
             baseline_cost = sum(t.estimated_cost for t in tasks.values())
             project_data = ProjectData(project_name, tasks, resources, baseline_cost)
-            print(f"Info (XmlReader): Carga completada. Devolviendo ProjectData.")
+            print(f"Info (XmlReader): Load completed. Returning ProjectData.")
             return project_data
 
         except Exception as e:
-            print(f"Error Crítico (XmlReader): Falló la carga del archivo XML '{file_path}': {e}")
+            print(f"Critical Error (XmlReader): Failed to load XML file '{file_path}': {e}")
             traceback.print_exc()
             raise ValueError(f"XmlReader: Falló al leer o procesar '{file_path}'.")

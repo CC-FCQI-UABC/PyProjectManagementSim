@@ -1,208 +1,208 @@
 # CHANGELOG
 
-Todos los cambios notables a este proyecto serán documentados en este archivo.
+All notable changes to this project will be documented in this file.
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - 2024-12-01
 
-### ✨ Añadido
-- **Sistema de Configuración Centralizado**
-  - `CoreConfig` para configuración global del framework
-  - `SimulationConfig` para parámetros de simulación
-  - `ExperimentConfig` para configuración de experimentos completos
-  - Validación de configuración con dataclasses
-  - Serialización/deserialización de configuración
+### Added
+- **Centralized Configuration System**
+  - `CoreConfig` for global framework configuration
+  - `SimulationConfig` for simulation parameters
+  - `ExperimentConfig` for complete experiment configuration
+  - Configuration validation with dataclasses
+  - Configuration serialization/deserialization
 
-- **Sistema de Logging Profesional**
-  - Reemplazo completo de `print()` por logging estándar
-  - Configuración centralizada en `core/config/logging_config.py`
-  - Diferentes niveles por módulo (DEBUG, INFO, WARNING, ERROR)
-  - Logs estructurados para mejor análisis
+- **Professional Logging System**
+  - Complete replacement of `print()` with standard logging
+  - Centralized configuration in `core/config/logging_config.py`
+  - Different levels per module (DEBUG, INFO, WARNING, ERROR)
+  - Structured logs for better analysis
 
-- **Manejo de Excepciones Personalizado**
-  - Jerarquía completa de excepciones en `core/exceptions.py`
-  - `SimulatorException` como excepción base
+- **Custom Exception Handling**
+  - Complete exception hierarchy in `core/exceptions.py`
+  - `SimulatorException` as base exception
   - `ConfigurationError`, `ValidationError`, `TaskError`, `ResourceError`, `TeamError`, `ReaderError`, `SimulationError`
-  - Manejo consistente de errores en todo el código
+  - Consistent error handling throughout the code
 
-- **Entidades Refactorizadas (SOLID)**
-  - `Task` con validaciones, properties y documentación completa
-  - `Resource` con validaciones, properties y documentación completa
-  - `Team` con validaciones, properties y documentación completa
-  - Type hints completos en todas las entidades
-  - Docstrings detallados en formato Google/NumPy
-  - Métodos `__eq__`, `__hash__` para comparaciones
-  - Atributos privados con properties públicas
+- **Refactored Entities (SOLID)**
+  - `Task` with validations, properties and complete documentation
+  - `Resource` with validations, properties and complete documentation
+  - `Team` with validations, properties and complete documentation
+  - Complete type hints in all entities
+  - Detailed docstrings in Google/NumPy format
+  - `__eq__`, `__hash__` methods for comparisons
+  - Private attributes with public properties
 
-- **Managers Especializados**
-  - `TaskProgressManager` - Gestión de progreso de tareas
-  - `TeamDynamicsManager` - Gestión de dinámicas de equipo
-  - `EventManager` - Gestión de eventos aleatorios
-  - `MetricsCalculator` - Cálculo de métricas del proyecto
-  - `DependencyResolver` - Resolución de dependencias
+- **Specialized Managers**
+  - `TaskProgressManager` - Task progress management
+  - `TeamDynamicsManager` - Team dynamics management
+  - `EventManager` - Random events management
+  - `MetricsCalculator` - Project metrics calculation
+  - `DependencyResolver` - Dependency resolution
 
-- **Modelo Refactorizado**
-  - `ProjectManagementModelRefactored` con inyección de dependencias
-  - Modelo solo orquesta, delega lógica a managers
-  - Separación clara de responsabilidades
-  - Interfaz clara para extensión
+- **Refactored Model**
+  - `ProjectManagementModelRefactored` with dependency injection
+  - Model only orchestrates, delegates logic to managers
+  - Clear separation of responsibilities
+  - Clear interface for extension
 
-- **Sistema de Estrategias Robusto**
-  - Registry Pattern implementado en `core/simulation/strategies/registry.py`
-  - `PriorityBasedStrategy` - Asignación basada en prioridad
-  - `ResourceOptimizationStrategy` - Optimización de recursos
-  - `CriticalPathStrategy` - Enfoque en ruta crítica
-  - Sistema extensible para nuevas estrategias
-  - Documentación de cada estrategia con casos de uso
+- **Robust Strategy System**
+  - Registry Pattern implemented in `core/simulation/strategies/registry.py`
+  - `PriorityBasedStrategy` - Priority-based assignment
+  - `ResourceOptimizationStrategy` - Resource optimization
+  - `CriticalPathStrategy` - Critical path approach
+  - Extensible system for new strategies
+  - Documentation for each strategy with use cases
 
-- **Sistema de Lectores Mejorado**
-  - Factory Pattern para creación de lectores
-  - `ProjectDataValidator` con validación completa
-  - `BaseProjectReader` mejorado con validación integrada
-  - Validación de integridad referencial, dependencias cíclicas, recursos suficientes
-  - Manejo robusto de errores específicos
+- **Improved Reader System**
+  - Factory Pattern for reader creation
+  - `ProjectDataValidator` with complete validation
+  - Enhanced `BaseProjectReader` with integrated validation
+  - Referential integrity validation, cyclic dependencies, sufficient resources
+  - Robust handling of specific errors
 
-- **Componentes de Simulación**
-  - `SimulationOrchestrator` - Orquestación de simulaciones
-  - `ResultsAggregator` - Agregación de resultados
-  - `OutputManager` - Gestión de salida de resultados
-  - Separación clara de responsabilidades del Runner
-  - Pipeline configurable de pre/post-procesamiento
+- **Simulation Components**
+  - `SimulationOrchestrator` - Simulation orchestration
+  - `ResultsAggregator` - Results aggregation
+  - `OutputManager` - Results output management
+  - Clear separation of Runner responsibilities
+  - Configurable pre/post-processing pipeline
 
-- **Sistema de Plugins/Extensiones**
-  - `PluginManager` con descubrimiento y carga de plugins
+- **Plugin/Extension System**
+  - `PluginManager` with plugin discovery and loading
   - Lifecycle hooks (on_simulation_start, on_step_end, on_simulation_end, on_experiment_end)
-  - `MetricsLoggerPlugin` como ejemplo
-  - Sistema completamente extensible
-  - Documentación de API para crear plugins
+  - `MetricsLoggerPlugin` as example
+  - Completely extensible system
+  - API documentation for creating plugins
 
-- **Suite de Tests Completa**
-  - Tests unitarios para entidades (`tests/unit/test_entities.py`)
-  - Tests unitarios para managers (`tests/unit/test_managers.py`)
-  - Tests unitarios para estrategias (`tests/unit/test_strategies.py`)
-  - Tests unitarios para lectores (`tests/unit/test_readers.py`)
-  - Tests unitarios para plugins (`tests/unit/test_plugins.py`)
-  - Tests de integración (`tests/integration/test_integration.py`)
-  - Tests de configuración (`tests/integration/test_configuration.py`)
-  - Fixtures compartidos (`tests/conftest.py`)
-  - Cobertura objetivo del 80%+
+- **Complete Test Suite**
+  - Unit tests for entities (`tests/unit/test_entities.py`)
+  - Unit tests for managers (`tests/unit/test_managers.py`)
+  - Unit tests for strategies (`tests/unit/test_strategies.py`)
+  - Unit tests for readers (`tests/unit/test_readers.py`)
+  - Unit tests for plugins (`tests/unit/test_plugins.py`)
+  - Integration tests (`tests/integration/test_integration.py`)
+  - Configuration tests (`tests/integration/test_configuration.py`)
+  - Shared fixtures (`tests/conftest.py`)
+  - Target coverage of 80%+
 
-- **CI/CD Básico**
+- **Basic CI/CD**
   - GitHub Actions workflow (`.github/workflows/ci.yml`)
-  - Tests automáticos para Python 3.8, 3.9, 3.10
-  - Linting con flake8, black, isort
-  - Type checking con mypy
-  - Pre-commit hooks configurados
+  - Automated tests for Python 3.8, 3.9, 3.10
+  - Linting with flake8, black, isort
+  - Type checking with mypy
+  - Configured pre-commit hooks
 
-- **Documentación Completa**
-  - Guía de Usuario (`docs/user_guide/user_guide.md`)
-  - Guía de Desarrollador (`docs/developer_guide/developer_guide.md`)
-  - Referencia de API (`docs/api/api_reference.md`)
-  - Ejemplos prácticos (`docs/examples/examples.md`)
-  - README profesional con badges
+- **Complete Documentation**
+  - User Guide (`docs/user_guide/user_guide.md`)
+  - Developer Guide (`docs/developer_guide/developer_guide.md`)
+  - API Reference (`docs/api/api_reference.md`)
+  - Practical examples (`docs/examples/examples.md`)
+  - Professional README with badges
 
-- **Empaquetado y Distribución**
-  - `setup.cfg` con configuración completa
-  - `pyproject.toml` con build system
-  - `requirements.txt` actualizado con todas las dependencias
-  - `MANIFEST.in` para distribución
-  - Preparado para PyPI
-  - Versioning semántico
+- **Packaging and Distribution**
+  - `setup.cfg` with complete configuration
+  - `pyproject.toml` with build system
+  - Updated `requirements.txt` with all dependencies
+  - `MANIFEST.in` for distribution
+  - Ready for PyPI
+  - Semantic versioning
 
-### 🔧 Cambiado
-- **Arquitectura General**
-  - Migración completa a arquitectura modular basada en SOLID
-  - Separación de responsabilidades en todos los componentes
-  - Inversión de dependencias implementada
-  - Principio Abierto/Cerrado aplicado
+### Changed
+- **General Architecture**
+  - Complete migration to modular architecture based on SOLID
+  - Separation of responsibilities in all components
+  - Dependency inversion implemented
+  - Open/Closed principle applied
 
-- **Código Base**
-  - Refactorización completa del código existente
-  - Eliminación de código duplicado
-  - Mejora de legibilidad y mantenibilidad
-  - Implementación de patrones de diseño profesionales
+- **Base Code**
+  - Complete refactoring of existing code
+  - Elimination of duplicate code
+  - Improved readability and maintainability
+  - Implementation of professional design patterns
 
-### 🐛 Corregido
-- **Problemas de Arquitectura**
-  - Eliminación de dependencias circulares
-  - Mejora de la cohesión de módulos
-  - Reducción del acoplamiento entre componentes
+### Fixed
+- **Architecture Issues**
+  - Elimination of circular dependencies
+  - Improved module cohesion
+  - Reduced coupling between components
 
-- **Problemas de Calidad**
-  - Corrección de todos los problemas de linting
-  - Mejora de type hints en todo el código
-  - Eliminación de código muerto
+- **Quality Issues**
+  - Correction of all linting problems
+  - Improved type hints throughout the code
+  - Elimination of dead code
 
-### 🔒 Seguridad
-- **Validación de Datos**
-  - Validación robusta en todos los puntos de entrada
-  - Manejo seguro de archivos de entrada
-  - Prevención de inyección de datos maliciosos
+### Security
+- **Data Validation**
+  - Robust validation at all entry points
+  - Safe handling of input files
+  - Prevention of malicious data injection
 
-### 📚 Documentación
-- **Documentación Técnica**
-  - Docstrings completos en todas las clases y métodos
-  - Ejemplos de uso en la documentación
-  - Diagramas de arquitectura
-  - Guías paso a paso
+### Documentation
+- **Technical Documentation**
+  - Complete docstrings for all classes and methods
+  - Usage examples in documentation
+  - Architecture diagrams
+  - Step-by-step guides
 
-### 🧪 Testing
-- **Cobertura de Tests**
-  - Tests unitarios para todos los componentes
-  - Tests de integración para flujos completos
-  - Tests de configuración y CI/CD
-  - Fixtures reutilizables
+### Testing
+- **Test Coverage**
+  - Unit tests for all components
+  - Integration tests for complete flows
+  - Configuration and CI/CD tests
+  - Reusable fixtures
 
-### 🚀 Performance
-- **Optimizaciones**
-  - Mejora de eficiencia en algoritmos de asignación
-  - Optimización de estructuras de datos
-  - Reducción de overhead en simulaciones
+### Performance
+- **Optimizations**
+  - Improved efficiency in assignment algorithms
+  - Data structure optimization
+  - Reduced overhead in simulations
 
 ---
 
 ## [Unreleased]
 
-### ✨ Planeado
-- Soporte para más formatos de archivo de proyecto
-- Estrategias de asignación adicionales
-- Plugins de visualización avanzada
-- Integración con bases de datos
-- API REST para acceso remoto
-- Dashboard web interactivo
+### Planned
+- Support for more project file formats
+- Additional assignment strategies
+- Advanced visualization plugins
+- Database integration
+- REST API for remote access
+- Interactive web dashboard
 
-### 🔧 En Desarrollo
-- Mejoras en el sistema de plugins
-- Optimizaciones de performance
-- Nuevas métricas de análisis
+### In Development
+- Plugin system improvements
+- Performance optimizations
+- New analysis metrics
 
 ---
 
-## Notas de Versión
+## Release Notes
 
 ### v1.0.0
-Esta es la primera versión estable del ABP Simulator. Incluye todas las funcionalidades básicas para simulación de gestión de proyectos con modelado basado en agentes.
+This is the first stable version of the ABP Simulator. It includes all basic functionalities for project management simulation with agent-based modeling.
 
-**Características Destacadas:**
-- Arquitectura profesional y extensible
-- Sistema completo de métricas de proyecto
-- Múltiples estrategias de asignación
-- Sistema de plugins para extensibilidad
-- Documentación completa y ejemplos
-- Suite de tests robusta
-- CI/CD automatizado
+**Key Features:**
+- Professional and extensible architecture
+- Complete project metrics system
+- Multiple assignment strategies
+- Plugin system for extensibility
+- Complete documentation and examples
+- Robust test suite
+- Automated CI/CD
 
-**Compatibilidad:**
+**Compatibility:**
 - Python 3.8+
 - Mesa 1.0+
 - Pandas 1.3+
 - NumPy 1.21+
 
-**Migración:**
-Esta es la primera versión, por lo que no hay migración desde versiones anteriores.
+**Migration:**
+This is the first version, so there is no migration from previous versions.
 
 ---
 
-*Para más información sobre cambios específicos, consulta los commits en el repositorio de GitHub.*
+*For more information about specific changes, check the commits in the GitHub repository.*
