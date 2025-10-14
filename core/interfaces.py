@@ -77,10 +77,10 @@ class IResourceAllocator(Protocol):
 @runtime_checkable
 class IMetricsCollector(Protocol):
     """
-    Protocolo para recolectores de métricas.
+    Protocol for metric collectors.
     
-    Define la interfaz que deben implementar los componentes
-    responsables de recolectar métricas del proyecto.
+    Defines the interface that components responsible for
+    collecting project metrics must implement.
     """
     
     def collect_metrics(
@@ -91,16 +91,16 @@ class IMetricsCollector(Protocol):
         **context
     ) -> Dict[str, Any]:
         """
-        Recolecta métricas del proyecto.
+        Collects project metrics.
         
         Args:
-            tasks: Lista de tareas del proyecto
-            resources: Lista de recursos del proyecto
-            teams: Lista de equipos del proyecto
-            **context: Contexto adicional
+            tasks: List of project tasks
+            resources: List of project resources
+            teams: List of project teams
+            **context: Additional context
             
         Returns:
-            Diccionario con las métricas recolectadas
+            Dictionary with collected metrics
         """
         ...
 
@@ -119,7 +119,7 @@ class IEventManager(Protocol):
         Determina si debe activarse un evento.
         
         Args:
-            **context: Contexto de la simulación
+            **context: Simulation context
             
         Returns:
             True si debe activarse un evento
@@ -131,10 +131,10 @@ class IEventManager(Protocol):
         Activa un evento aleatorio.
         
         Args:
-            **context: Contexto de la simulación
+            **context: Simulation context
             
         Returns:
-            Información sobre el evento activado
+            Information about the triggered event
         """
         ...
 
@@ -162,7 +162,7 @@ class IDependencyResolver(Protocol):
     
     def get_ready_tasks(self, tasks: List[Task]) -> List[Task]:
         """
-        Obtiene las tareas que están listas para iniciarse.
+        Gets tasks that are ready to start.
         
         Args:
             tasks: Lista de tareas a verificar
@@ -206,10 +206,10 @@ class IProjectReader(ABC):
             data: Datos del proyecto a validar
             
         Returns:
-            True si los datos son válidos
+            True if data is valid
             
         Raises:
-            ValidationError: Si los datos no son válidos
+            ValidationError: If data is not valid
         """
         pass
     
@@ -226,10 +226,10 @@ class IProjectReader(ABC):
 
 class IAssignmentStrategy(ABC):
     """
-    Interfaz base para estrategias de asignación.
+    Base interface for assignment strategies.
     
-    Define el contrato que deben implementar todas las estrategias
-    de asignación de tareas a recursos.
+    Defines the contract that all task assignment strategies
+    must implement.
     """
     
     @abstractmethod
@@ -245,7 +245,7 @@ class IAssignmentStrategy(ABC):
             Diccionario mapeando task_id -> resource_id
             
         Raises:
-            StrategyError: Si hay problemas con la asignación
+            StrategyError: If there are problems with assignment
         """
         pass
     
@@ -262,10 +262,10 @@ class IAssignmentStrategy(ABC):
     @abstractmethod
     def get_strategy_description(self) -> str:
         """
-        Obtiene la descripción de la estrategia.
+        Gets the strategy description.
         
         Returns:
-            Descripción de la estrategia
+            Strategy description
         """
         pass
 
@@ -318,7 +318,7 @@ class IPlugin(ABC):
         Inicializa el plugin.
         
         Args:
-            **config: Configuración del plugin
+            **config: Plugin configuration
             
         Raises:
             PluginError: Si hay problemas inicializando
@@ -348,36 +348,35 @@ class IPlugin(ABC):
     @abstractmethod
     def get_plugin_version(self) -> str:
         """
-        Obtiene la versión del plugin.
+        Gets the plugin version.
         
         Returns:
-            Versión del plugin
+            Plugin version
         """
         pass
 
 
 class IValidationRule(ABC):
     """
-    Interfaz base para reglas de validación.
+    Base interface for validation rules.
     
-    Define el contrato que deben implementar las reglas
-    de validación del sistema.
+    Defines the contract that validation rules must implement.
     """
     
     @abstractmethod
     def validate(self, data: Any, **context) -> bool:
         """
-        Valida los datos según la regla.
+        Validates data according to the rule.
         
         Args:
             data: Datos a validar
-            **context: Contexto de validación
+            **context: Validation context
             
         Returns:
-            True si los datos son válidos
+            True if data is valid
             
         Raises:
-            ValidationError: Si los datos no son válidos
+            ValidationError: If data is not valid
         """
         pass
     
@@ -434,7 +433,7 @@ class ProjectData:
     """
     Datos de un proyecto cargado desde archivo.
     
-    Contiene toda la información necesaria para crear
+    Contains all the information needed to create
     un proyecto en el simulador.
     """
     
@@ -455,10 +454,10 @@ class ProjectData:
 @dataclass
 class SimulationResult:
     """
-    Resultado de una simulación.
+    Simulation result.
     
-    Contiene las métricas y datos generados durante
-    la ejecución de una simulación.
+    Contains metrics and data generated during
+    simulation execution.
     """
     
     simulation_id: int
@@ -482,10 +481,10 @@ class SimulationResult:
 @dataclass
 class EventInfo:
     """
-    Información sobre un evento.
+    Information about an event.
     
-    Contiene los detalles de un evento que ocurrió
-    durante la simulación.
+    Contains details of an event that occurred
+    during simulation.
     """
     
     event_type: str

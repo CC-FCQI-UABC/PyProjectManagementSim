@@ -103,19 +103,19 @@ class MpxjProjectReader(ProjectReader):
                      return 0.0 # Más seguro devolver 0 si no hay tasa por hora
         except Exception as e:
             print(f"Adv (MPXJReader): Error getting cost/h for Resource ID {mpxj_resource.getID()}: {e}")
-        return 0.0 # Costo por defecto si no se puede obtener
+        return 0.0 # Default cost if cannot be obtained
 
     def load(self, file_path: str) -> Project:
         global _mpxj_reader_instance
 
-        if not _jvm_started: raise RuntimeError("MPXJReader: JVM no está iniciada.")
-        if not os.path.exists(file_path): raise FileNotFoundError(f"MPXJReader: Archivo no encontrado: {file_path}")
-
-        print(f"Info (MPXJReader): Cargando desde '{file_path}'...")
+        if not _jvm_started: raise RuntimeError("MPXJReader: JVM is not started.")
+        if not os.path.exists(file_path): raise FileNotFoundError(f"MPXJReader: File not found: {file_path}")
+        
+        print(f"Info (MPXJReader): Loading from '{file_path}'...")
         project = Project()
         project._clear_project_data()
         task_map: Dict[int, Task] = {}
-        # NUEVO: Mapa para relacionar ID de recurso MPXJ con objeto Resource Python
+        # NEW: Map to relate MPXJ resource ID with Python Resource object
         resource_map: Dict[int, Resource] = {}
 
         try:
@@ -126,43 +126,43 @@ class MpxjProjectReader(ProjectReader):
 
             project.project_name = str(mpxj_project.getProjectHeader().getProjectTitle()) or os.path.basename(file_path)
 
-            # --- NUEVO: Procesar Recursos Primero ---
+            # --- NEW: Process Resources First ---
             mpxj_resources = mpxj_project.getResources()
             if mpxj_resources:
-                print(f"Info (MPXJReader): Procesando {mpxj_resources.size()} recursos MPXJ...")
+                print(f"Info (MPXJReader): Processing {mpxj_resources.size()} MPXJ resources...")
                 for mpxj_res in mpxj_resources:
                     try:
-                        res_id = int(mpxj_res.getID()) # Usar getID() que suele ser más estable que UniqueID para recursos
-                        res_unique_id = int(mpxj_res.getUniqueID()) # Guardar también el UniqueID por si acaso
+                        res_id = int(mpxj_res.getID()) # Use getID() which is usually more stable than UniqueID for resources
+                        res_unique_id = int(mpxj_res.getUniqueID()) # Also save UniqueID just in case
                         res_name = str(mpxj_res.getName()) or f"Unnamed Resource {res_id}"
 
-                        # Obtener costo por hora
+                        # Get cost per hour
                         cost_per_hour = self._get_cost_per_hour(mpxj_res)
 
-                        # Crear objeto Resource Python
+                        # Create Python Resource object
                         py_resource = Resource(resource_id=res_id, name=res_name, cost_per_hour=cost_per_hour)
                         project.add_resource(py_resource)
-                        resource_map[res_unique_id] = py_resource # Mapear por UniqueID para las asignaciones
-                        print(f"  -> Recurso Creado: {py_resource}")
+                        resource_map[res_unique_id] = py_resource # Map by UniqueID for assignments
+                        print(f"  -> Resource Created: {py_resource}")
 
                     except Exception as res_e:
-                        print(f"Adv (MPXJReader): Error procesando recurso MPXJ: {res_e}")
-                print(f"Info (MPXJReader): {len(project.resources)} recursos Python creados y añadidos al proyecto.")
+                        print(f"Adv (MPXJReader): Error processing MPXJ resource: {res_e}")
+                print(f"Info (MPXJReader): {len(project.resources)} Python resources created and added to project.")
             else:
-                print("Adv (MPXJReader): No se encontraron recursos en el archivo MPXJ.")
-                # Considerar si lanzar un error aquí si los recursos son obligatorios
-                # raise ValueError("No se encontraron recursos en el archivo MPXJ, necesarios para la simulación.")
+                print("Adv (MPXJReader): No resources found in MPXJ file.")
+                # Consider whether to throw an error here if resources are mandatory
+                # raise ValueError("No resources found in MPXJ file, required for simulation.")
 
-            # --- Procesar Tareas ---
+            # --- Process Tasks ---
             mpxj_tasks = mpxj_project.getTasks()
             if mpxj_tasks:
-                print(f"Info (MPXJReader): Procesando {mpxj_tasks.size()} tareas MPXJ...")
+                print(f"Info (MPXJReader): Processing {mpxj_tasks.size()} MPXJ tasks...")
                 for mpxj_task in mpxj_tasks:
                     is_summary = bool(mpxj_task.getSummary())
-                    # Usar UniqueID para tareas, es la clave consistente
+                    # Use UniqueID for tasks, it's the consistent key
                     task_unique_id = int(mpxj_task.getUniqueID())
 
-                    # Ignorar tarea raíz (ID=0) y tareas resumen
+                    # Ignore root task (ID=0) and summary tasks
                     if task_unique_id == 0 or is_summary: continue
 
                     try:

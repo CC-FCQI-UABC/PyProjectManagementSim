@@ -44,15 +44,15 @@ class AsposeProjectReader(ProjectReader):
             if std_rate_format_enum == tasks.RateFormatType.MONTH_BY_DAY or \
                std_rate_format_enum == tasks.RateFormatType.MONTH_BY_HOUR: return rate_amount / 160.0
             if std_rate_format_enum == tasks.RateFormatType.YEAR: return rate_amount / 1920.0
-            # Ignorar costo si es Material o tipo no manejado
+            # Ignore cost if it's Material or unhandled type
             if std_rate_format_enum == tasks.RateFormatType.MATERIAL: return 0.0
             return 0.0 # Default
-        except AttributeError: pass # Ignorar si faltan atributos de costo/tasa
+        except AttributeError: pass # Ignore if cost/rate attributes are missing
         except Exception as e: print(f"Adv (AsposeReader Cost): Exception getting cost/h for Resource ID {getattr(aspose_resource, 'id', 'N/A')}: {e}")
         return 0.0
 
     def _get_aspose_duration_hours(self, aspose_task: tasks.Task) -> float:
-        """Convierte un objeto Duration de Aspose a horas."""
+        """Converts an Aspose Duration object to hours."""
         try:
             # Acceso directo a atributo 'duration'
             aspose_duration = aspose_task.duration
@@ -67,13 +67,13 @@ class AsposeProjectReader(ProjectReader):
                  if duration_unit == tasks.TimeUnitType.DAY: return duration_value * 8.0
                  if duration_unit == tasks.TimeUnitType.WEEK: return duration_value * 40.0
                  return duration_value # Devolver como está si no se maneja la unidad
-        except AttributeError: pass # Ignorar si falta atributo duration
+        except AttributeError: pass # Ignore if duration attribute is missing
         except Exception as e: print(f"Adv (AsposeReader Duration): Exception converting duration to hours for Task UID {getattr(aspose_task, 'unique_id', 'N/A')}: {e}")
         return 0.0
 
     def load(self, file_path: str) -> Project:
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"AsposeReader: Archivo no encontrado: {file_path}")
+            raise FileNotFoundError(f"AsposeReader: File not found: {file_path}")
 
         print(f"Info (AsposeReader): Loading project from '{file_path}'...")
         project = Project()

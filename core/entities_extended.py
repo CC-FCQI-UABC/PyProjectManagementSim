@@ -120,7 +120,7 @@ class Resource:
         # Metrics
         self._metrics = ResourceMetrics()
         
-        logger.debug(f"Recurso creado: {self}")
+        logger.debug(f"Resource created: {self}")
     
     def _validate_constructor_params(
         self,
@@ -290,7 +290,7 @@ class Resource:
         
         old_status = self._status
         self._status = status
-        logger.debug(f"Estado del recurso {self.id} cambiado: {old_status.value} -> {status.value}")
+        logger.debug(f"Resource {self.id} status changed: {old_status.value} -> {status.value}")
     
     def add_skill(self, skill: str) -> None:
         """
@@ -447,7 +447,7 @@ class Team:
         self._time_on_current_task = 0
         self._metadata = metadata or {}
         
-        logger.debug(f"Equipo creado: {self}")
+        logger.debug(f"Team created: {self}")
     
     def _validate_constructor_params(
         self,
@@ -610,7 +610,7 @@ class Team:
         
         old_morale = self._morale
         self._morale = min(2.0, self._morale + amount)
-        logger.debug(f"Moral del equipo {self.id} aumentada: {old_morale:.2f} -> {self._morale:.2f}")
+        logger.debug(f"Team {self.id} morale increased: {old_morale:.2f} -> {self._morale:.2f}")
     
     def decay_morale(self, amount: float = 0.05) -> None:
         """
@@ -628,7 +628,7 @@ class Team:
         
         old_morale = self._morale
         self._morale = max(0.0, self._morale - amount)
-        logger.debug(f"Moral del equipo {self.id} disminuida: {old_morale:.2f} -> {self._morale:.2f}")
+        logger.debug(f"Team {self.id} morale decreased: {old_morale:.2f} -> {self._morale:.2f}")
     
     def regress_to_mean(self, baseline: float = 0.75, rate: float = 0.02) -> None:
         """

@@ -1,8 +1,8 @@
 """
-Sistema de logging profesional para el simulador ABP.
+Professional logging system for the ABP simulator.
 
-Este módulo proporciona configuración centralizada de logging
-con diferentes niveles por módulo y logs estructurados.
+This module provides centralized logging configuration
+with different levels per module and structured logs.
 """
 
 import logging
@@ -18,7 +18,7 @@ class StructuredFormatter(logging.Formatter):
     """
     Formateador que produce logs estructurados en formato JSON.
     
-    Útil para análisis automatizado y integración con sistemas de monitoreo.
+    Useful for automated analysis and integration with monitoring systems.
     """
     
     def format(self, record: logging.LogRecord) -> str:

@@ -108,29 +108,29 @@ class SimulationRunner:
                     # 3. Añadimos el DataFrame completo a nuestra lista
                     all_run_dataframes.append(run_df)
 
-                    print(f"--- Simulación {i} completada en {model.schedule.time} pasos. ---")
+                    print(f"--- Simulation {i} completed in {model.schedule.time} steps. ---")
 
                 except Exception as sim_exec_e:
-                    print(f"  Error durante Simulación {i}: {sim_exec_e}")
+                    print(f"  Error during Simulation {i}: {sim_exec_e}")
                     traceback.print_exc()
 
         except Exception as e:
-            print(f"!!! Error fatal en el Runner: {e} !!!")
+            print(f"!!! Fatal error in Runner: {e} !!!")
             traceback.print_exc()
 
         if all_run_dataframes:
-            # MODIFICADO: Usamos pd.concat para unir la lista de DataFrames
+            # MODIFIED: Use pd.concat to join the list of DataFrames
             self.aggregated_results = pd.concat(all_run_dataframes, ignore_index=True)
             self.save_results()
             if self.config.print_last_run_summary:
-                # Mostramos el resumen de la última fila de la última simulación
-                print("\n--- Resumen Sim (Estado Final de la Última Simulación) ---")
+                # Show summary of the last row of the last simulation
+                print("\n--- Simulation Summary (Final State of Last Simulation) ---")
                 print(all_run_dataframes[-1].iloc[-1].to_string())
         else:
-            print("Error: No se generaron datos en ninguna simulación.")
+            print("Error: No data generated in any simulation.")
 
-        print(f"\n--- {len(all_run_dataframes)}/{self.config.num_simulations} Simulaciones Reportadas ---")
-        print(f"Tiempo Total de Ejecución: {datetime.now() - main_start_time}")
+        print(f"\n--- {len(all_run_dataframes)}/{self.config.num_simulations} Simulations Reported ---")
+        print(f"Total Execution Time: {datetime.now() - main_start_time}")
 
     def save_results(self):
         filename = self.config.output_filename_base

@@ -1,7 +1,7 @@
 """
-Módulo de simulación del simulador ABP.
+Simulation module for the ABP simulator.
 
-Este módulo contiene los componentes del sistema de simulación.
+This module contains the simulation system components.
 """
 
 from .model import ProjectManagementModel

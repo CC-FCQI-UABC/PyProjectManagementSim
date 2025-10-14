@@ -119,7 +119,7 @@ class Task:
             metadata: Información adicional personalizada
             
         Raises:
-            ValidationError: Si los parámetros no son válidos
+            ValidationError: If parameters are not valid
         """
         self._validate_constructor_params(task_id, name, duration, estimated_cost)
         
@@ -146,7 +146,7 @@ class Task:
             planned_cost=self._estimated_cost
         )
         
-        logger.debug(f"Tarea creada: {self}")
+        logger.debug(f"Task created: {self}")
     
     def _validate_constructor_params(
         self, 
@@ -364,7 +364,7 @@ class Task:
             )
         
         if self._status == TaskStatus.DONE:
-            logger.warning(f"Intentando actualizar progreso de tarea completada: {self.id}")
+            logger.warning(f"Attempting to update progress of completed task: {self.id}")
             return
         
         # Update state according to progress
@@ -386,7 +386,7 @@ class Task:
         if increment > 0:
             self._metrics.actual_duration += increment
         
-        logger.debug(f"Progreso actualizado: {old_progress:.2f} -> {self._progress:.2f}")
+        logger.debug(f"Progress updated: {old_progress:.2f} -> {self._progress:.2f}")
     
     def add_dependency(self, task: Task) -> None:
         """
@@ -414,7 +414,7 @@ class Task:
         
         if task not in self._dependencies:
             self._dependencies.append(task)
-            logger.debug(f"Dependencia añadida: {task.id} -> {self.id}")
+            logger.debug(f"Dependency added: {task.id} -> {self.id}")
     
     def remove_dependency(self, task: Task) -> None:
         """
@@ -425,7 +425,7 @@ class Task:
         """
         if task in self._dependencies:
             self._dependencies.remove(task)
-            logger.debug(f"Dependencia eliminada: {task.id} -> {self.id}")
+            logger.debug(f"Dependency removed: {task.id} -> {self.id}")
     
     def can_start(self) -> bool:
         """

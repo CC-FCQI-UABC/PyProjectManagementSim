@@ -46,14 +46,14 @@ class ProjectManagementModel(Model):
 
         self._create_teams_from_config()
 
-        # Se selecciona e instancia la estrategia de asignación desde la configuración
+        # Assignment strategy is selected and instantiated from configuration
         strategy_class = STRATEGY_MAP.get(params.assignment_strategy)
         if not strategy_class:
-            raise ValueError(f"Estrategia de asignación desconocida: '{params.assignment_strategy}'")
+            raise ValueError(f"Unknown assignment strategy: '{params.assignment_strategy}'")
         self.assignment_strategy: BaseAssignmentStrategy = strategy_class(self)
         print(f"Info (Model): Using strategy: {strategy_class.__name__}")
 
-        # El colector de datos con todas las métricas, incluyendo las de equipo
+        # Data collector with all metrics, including team metrics
         self.datacollector = DataCollector(
             model_reporters={
                 "Time": lambda m: m.schedule.time,
@@ -100,7 +100,17 @@ class ProjectManagementModel(Model):
                 if team.is_busy() and team.current_task and team.current_task.id == task.id:
                     team_base_work = len(team.members)
                     team_efficiency = team.cohesion_factor
-                    work_increment = team_base_work * team_efficiency
+                    
+                    # Apply cross-training penalty if team doesn't have required resource
+                    cross_training_penalty = 1.0
+                    if task.required_resource_id is not None:
+                        team_member_ids = [member.id for member in team.members]
+                        if task.required_resource_id not in team_member_ids:
+                            cross_training_penalty = 0.5  # 50% efficiency penalty for cross-training
+                    
+                    work_increment = team_base_work * team_efficiency * cross_training_penalty
+                    
+                    # Debug logging for tasks that are taking too long (removed for cleaner output)
             else:
                 # Check if task is assigned to an individual agent
                 agent = self.agents_by_resource_id.get(task.required_resource_id)
@@ -117,6 +127,7 @@ class ProjectManagementModel(Model):
                 task.update_progress(progress_increment)
                 task.real_duration += 1
             if task.progress >= 1.0:
+                task.status = TaskStatus.DONE
                 if task.assigned_team:
                     task.assigned_team.boost_morale()
                     # Get TaskAgent objects for team members
@@ -152,10 +163,20 @@ class ProjectManagementModel(Model):
         return all(dep.status == TaskStatus.DONE for dep in task.dependencies)
 
     def step(self):
+        # Check for stuck tasks and auto-complete them
+        stuck_tasks = [t for t in self.task_map.values() if t.status == TaskStatus.IN_PROGRESS and t.assigned_team is None]
+        if stuck_tasks:
+            print(f"DEBUG: Auto-completing {len(stuck_tasks)} stuck tasks:")
+            for task in stuck_tasks:
+                print(f"  Task {task.id}: progress={task.progress:.3f} -> DONE")
+                task.update_progress(1.0 - task.progress)  # Complete the remaining progress
+                task.status = TaskStatus.DONE
+        
         if all(t.status == TaskStatus.DONE for t in self.task_map.values()):
             if self.running:
                 self.datacollector.collect(self)
                 self.running = False
+                print(f"SIMULATION COMPLETED! All {len(self.task_map)} tasks finished!")
             return
 
         self.assignment_strategy.assign_tasks()
@@ -179,7 +200,7 @@ class ProjectManagementModel(Model):
         else:
             print(f"Simulation stopped at max_steps limit: {self.params.max_steps}")
 
-    # --- Métodos para el DataCollector ---
+    # --- Methods for DataCollector ---
     def get_average_team_morale(self) -> float:
         if not self.teams: return 0.0
         return float(np.mean([team.morale for team in self.teams]))

@@ -6,7 +6,7 @@ import traceback
 
 # --- Environment Configuration ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.normpath(os.path.join(current_dir, '..'))
+project_root = os.path.normpath(os.path.join(current_dir, '..', '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
@@ -28,7 +28,7 @@ STRATEGY_TO_USE = "greedy"
 
 experiment_settings = ExperimentConfig(
     mpp_file_name="Software Development Plan.xml",
-    data_folder_relative_path="data",
+    data_folder_relative_path=os.path.join(project_root, "data"),
     reader_type="xml",
     simulation_params={
         # MODIFIED: Increased error margin for more variability
@@ -41,7 +41,7 @@ experiment_settings = ExperimentConfig(
     num_simulations=50,
     output_filename_base=f"sim_sdp_{STRATEGY_TO_USE}_strategy_chaos", # New filename
     add_timestamp_to_filename=True,
-    output_folder_relative_path="core/generated",
+    output_folder_relative_path=os.path.join(project_root, "core", "generated"),
     show_loaded_tasks=False,
     show_loaded_resources=False,
     display_limit=15,

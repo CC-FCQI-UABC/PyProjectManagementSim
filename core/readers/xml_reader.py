@@ -126,11 +126,11 @@ class XmlProjectReader(ProjectReader):
                 succ_uid_text = link.findtext('p:SuccessorUID', namespaces=ns_map)
                 link_type_text = link.findtext('p:Type', default='0', namespaces=ns_map)
 
-                # MODIFICADO: Añadimos una comprobación para asegurarnos de que los valores existen
+                # MODIFIED: Added a check to ensure values exist
                 if pred_uid_text is None or succ_uid_text is None:
-                    continue  # Saltar este enlace si está incompleto
+                    continue  # Skip this link if incomplete
 
-                # Si los valores existen, los convertimos a número
+                # If values exist, convert them to numbers
                 pred_uid = int(pred_uid_text)
                 succ_uid = int(succ_uid_text)
                 link_type = int(link_type_text)
@@ -147,4 +147,4 @@ class XmlProjectReader(ProjectReader):
         except Exception as e:
             print(f"Critical Error (XmlReader): Failed to load XML file '{file_path}': {e}")
             traceback.print_exc()
-            raise ValueError(f"XmlReader: Falló al leer o procesar '{file_path}'.")
+            raise ValueError(f"XmlReader: Failed to read or process '{file_path}'.")

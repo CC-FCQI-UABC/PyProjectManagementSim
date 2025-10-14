@@ -1,4 +1,4 @@
-# Contenido completo y actualizado de core/simulation/parameters.py
+# Complete and updated content of core/simulation/parameters.py
 
 from dataclasses import dataclass, field
 from typing import List, Dict

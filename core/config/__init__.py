@@ -1,8 +1,8 @@
 """
-Sistema de configuración centralizado para el simulador ABP.
+Centralized configuration system for the ABP simulator.
 
-Este módulo proporciona clases de configuración bien tipadas
-con validación automática usando dataclasses y type hints.
+This module provides well-typed configuration classes
+with automatic validation using dataclasses and type hints.
 """
 
 from dataclasses import dataclass, field
@@ -28,7 +28,7 @@ class LogLevel(Enum):
 
 
 class AssignmentStrategy(Enum):
-    """Estrategias de asignación disponibles."""
+    """Available assignment strategies."""
     GREEDY = "greedy"
     ROUND_ROBIN = "round_robin"
     PRIORITY_BASED = "priority_based"
@@ -46,32 +46,32 @@ class ReaderType(Enum):
 @dataclass
 class CoreConfig:
     """
-    Configuración global del framework.
+    Global framework configuration.
     
-    Contiene configuraciones que afectan a todo el simulador.
+    Contains configurations that affect the entire simulator.
     """
     
-    # Configuración de logging
+    # Logging configuration
     log_level: LogLevel = LogLevel.INFO
     log_file: Optional[str] = None
     structured_logging: bool = False
     colored_logging: bool = True
     
-    # Configuración de rendimiento
+    # Performance configuration
     max_concurrent_simulations: int = 4
     memory_limit_mb: int = 1024
     
-    # Configuración de validación
+    # Validation configuration
     strict_validation: bool = True
     validate_dependencies: bool = True
     validate_resources: bool = True
     
-    # Configuración de plugins
+    # Plugin configuration
     plugins_enabled: bool = True
     plugins_directory: str = "plugins"
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if self.max_concurrent_simulations < 1:
             raise ValidationError(
                 "max_concurrent_simulations debe ser >= 1",
@@ -90,32 +90,32 @@ class CoreConfig:
 @dataclass
 class SimulationConfig:
     """
-    Configuración específica de simulación.
+    Simulation-specific configuration.
     
-    Contiene parámetros que afectan el comportamiento de la simulación.
+    Contains parameters that affect simulation behavior.
     """
     
-    # Parámetros básicos
+    # Basic parameters
     max_steps: int = 3000
     error_margin: float = 0.15
     reassignment_frequency: int = 0
     
-    # Configuración de equipos
+    # Team configuration
     team_morale_decay_rate: float = 0.02
     team_cohesion_regression_rate: float = 0.01
     team_morale_boost_on_completion: float = 0.1
     
-    # Configuración de eventos aleatorios
+    # Random event configuration
     random_events_enabled: bool = True
     random_event_probability: float = 0.02
     random_event_morale_impact: float = 0.3
     
-    # Configuración de métricas
+    # Metrics configuration
     collect_detailed_metrics: bool = True
     metrics_collection_interval: int = 1
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if self.max_steps < 1:
             raise ValidationError(
                 "max_steps debe ser >= 1",
@@ -141,46 +141,46 @@ class SimulationConfig:
 @dataclass
 class ExperimentConfig:
     """
-    Configuración de experimentos.
+    Experiment configuration.
     
-    Contiene parámetros específicos para ejecutar experimentos
-    con múltiples simulaciones.
+    Contains specific parameters for running experiments
+    with multiple simulations.
     """
     
-    # Archivos y datos
+    # Files and data
     project_file: str = "project.xml"
     data_directory: str = "data"
     output_directory: str = "results"
     
-    # Configuración del lector
+    # Reader configuration
     reader_type: ReaderType = ReaderType.XML
     
-    # Configuración de recursos
+    # Resource configuration
     resources_definition: List[Dict[str, Any]] = field(default_factory=list)
     
-    # Configuración de equipos
+    # Team configuration
     team_definitions: List[Dict[str, Any]] = field(default_factory=list)
     
-    # Configuración de simulación
+    # Simulation configuration
     simulation_config: SimulationConfig = field(default_factory=SimulationConfig)
     
-    # Configuración de experimento
+    # Experiment configuration
     num_simulations: int = 5
     assignment_strategy: AssignmentStrategy = AssignmentStrategy.GREEDY
     
-    # Configuración de salida
+    # Output configuration
     output_filename_base: str = "simulation_results"
     add_timestamp_to_filename: bool = True
     output_formats: List[str] = field(default_factory=lambda: ["csv"])
     
-    # Configuración de visualización
+    # Visualization configuration
     show_loaded_tasks: bool = False
     show_loaded_resources: bool = False
     display_limit: int = 20
     print_summary: bool = True
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if self.num_simulations < 1:
             raise ValidationError(
                 "num_simulations debe ser >= 1",
@@ -209,9 +209,9 @@ class ExperimentConfig:
 @dataclass
 class ResourceConfig:
     """
-    Configuración de un recurso.
+    Resource configuration.
     
-    Define las propiedades de un recurso individual.
+    Defines the properties of an individual resource.
     """
     
     resource_id: int
@@ -223,7 +223,7 @@ class ResourceConfig:
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if self.resource_id <= 0:
             raise ValidationError(
                 "resource_id debe ser > 0",
@@ -233,7 +233,7 @@ class ResourceConfig:
         
         if not self.name.strip():
             raise ValidationError(
-                "name no puede estar vacío",
+                "name cannot be empty",
                 field="name",
                 value=self.name
             )
@@ -263,9 +263,9 @@ class ResourceConfig:
 @dataclass
 class TeamConfig:
     """
-    Configuración de un equipo.
+    Team configuration.
     
-    Define las propiedades de un equipo de trabajo.
+    Defines the properties of a work team.
     """
     
     team_id: int
@@ -276,7 +276,7 @@ class TeamConfig:
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
-        """Validación post-inicialización."""
+        """Post-initialization validation."""
         if self.team_id <= 0:
             raise ValidationError(
                 "team_id debe ser > 0",
@@ -286,14 +286,14 @@ class TeamConfig:
         
         if not self.name.strip():
             raise ValidationError(
-                "name no puede estar vacío",
+                "name cannot be empty",
                 field="name",
                 value=self.name
             )
         
         if not self.member_resource_ids:
             raise ValidationError(
-                "member_resource_ids no puede estar vacío",
+                "member_resource_ids cannot be empty",
                 field="member_resource_ids",
                 value=self.member_resource_ids
             )
@@ -315,58 +315,58 @@ class TeamConfig:
 
 class ConfigManager:
     """
-    Gestor de configuración del simulador.
+    Simulator configuration manager.
     
-    Proporciona métodos para cargar, validar y gestionar
-    configuraciones desde diferentes fuentes.
+    Provides methods to load, validate and manage
+    configurations from different sources.
     """
     
     def __init__(self):
-        """Inicializa el gestor de configuración."""
+        """Initializes the configuration manager."""
         self._core_config: Optional[CoreConfig] = None
         self._simulation_config: Optional[SimulationConfig] = None
         self._experiment_config: Optional[ExperimentConfig] = None
     
     @property
     def core_config(self) -> CoreConfig:
-        """Obtiene la configuración del core."""
+        """Gets the core configuration."""
         if self._core_config is None:
             self._core_config = CoreConfig()
         return self._core_config
     
     @property
     def simulation_config(self) -> SimulationConfig:
-        """Obtiene la configuración de simulación."""
+        """Gets the simulation configuration."""
         if self._simulation_config is None:
             self._simulation_config = SimulationConfig()
         return self._simulation_config
     
     @property
     def experiment_config(self) -> ExperimentConfig:
-        """Obtiene la configuración de experimento."""
+        """Gets the experiment configuration."""
         if self._experiment_config is None:
             self._experiment_config = ExperimentConfig()
         return self._experiment_config
     
     def load_core_config(self, config_path: Union[str, Path]) -> CoreConfig:
         """
-        Carga la configuración del core desde archivo.
+        Loads core configuration from file.
         
         Args:
-            config_path: Ruta al archivo de configuración
+            config_path: Path to configuration file
             
         Returns:
-            Configuración del core cargada
+            Loaded core configuration
             
         Raises:
-            ConfigurationError: Si hay problemas cargando la configuración
+            ConfigurationError: If there are problems loading the configuration
         """
         try:
             config_path = Path(config_path)
             
             if not config_path.exists():
                 raise ConfigurationError(
-                    f"Archivo de configuración no encontrado: {config_path}",
+                    f"Configuration file not found: {config_path}",
                     field="config_path",
                     value=str(config_path)
                 )
@@ -412,7 +412,7 @@ class ConfigManager:
             
             if not config_path.exists():
                 raise ConfigurationError(
-                    f"Archivo de configuración no encontrado: {config_path}",
+                    f"Configuration file not found: {config_path}",
                     field="config_path",
                     value=str(config_path)
                 )

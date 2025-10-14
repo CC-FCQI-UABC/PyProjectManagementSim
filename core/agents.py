@@ -23,7 +23,7 @@ class TaskAgent(MesaAgent):
     """
 
     def __init__(self, unique_id: int, model: 'ProjectManagementModel', resource: Resource, efficiency: float = 1.0):
-        # --- MODIFICACIÓN CLAVE Y DEFINITIVA ---
+        # --- KEY AND DEFINITIVE MODIFICATION ---
         # No llamamos a super().__init__() para evitar los conflictos de versiones de Mesa.
         # En su lugar, asignamos manualmente los atributos que la clase base necesita.
         # This makes our code immune to how Mesa handles its constructor.

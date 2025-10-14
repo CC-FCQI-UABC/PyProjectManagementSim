@@ -1,8 +1,8 @@
 """
-Sistema de excepciones personalizado para el simulador ABP.
+Custom exception system for the ABP simulator.
 
-Este módulo define una jerarquía de excepciones específicas para el simulador,
-permitiendo un manejo de errores más granular y consistente.
+This module defines a hierarchy of specific exceptions for the simulator,
+allowing for more granular and consistent error handling.
 """
 
 from typing import Any, Optional
@@ -10,10 +10,10 @@ from typing import Any, Optional
 
 class SimulatorException(Exception):
     """
-    Excepción base para todas las excepciones del simulador ABP.
+    Base exception for all ABP simulator exceptions.
     
-    Proporciona funcionalidad común para todas las excepciones específicas,
-    incluyendo información contextual y campos adicionales.
+    Provides common functionality for all specific exceptions,
+    including contextual information and additional fields.
     """
     
     def __init__(
@@ -24,13 +24,13 @@ class SimulatorException(Exception):
         context: Optional[dict] = None
     ):
         """
-        Inicializa la excepción.
+        Initializes the exception.
         
         Args:
-            message: Mensaje descriptivo del error
-            field: Campo que causó el error (opcional)
-            value: Valor que causó el error (opcional)
-            context: Información contextual adicional (opcional)
+            message: Descriptive error message
+            field: Field that caused the error (optional)
+            value: Value that caused the error (optional)
+            context: Additional contextual information (optional)
         """
         super().__init__(message)
         self.message = message
@@ -57,27 +57,27 @@ class SimulatorException(Exception):
 
 class ConfigurationError(SimulatorException):
     """
-    Excepción para errores de configuración.
+    Exception for configuration errors.
     
-    Se lanza cuando hay problemas con la configuración del simulador,
-    parámetros inválidos o configuraciones incompletas.
+    Raised when there are problems with simulator configuration,
+    invalid parameters or incomplete configurations.
     """
     pass
 
 
 class ValidationError(SimulatorException):
     """
-    Excepción para errores de validación de datos.
+    Exception for data validation errors.
     
-    Se lanza cuando los datos de entrada no cumplen con las reglas
-    de validación establecidas.
+    Raised when input data does not meet the established
+    validation rules.
     """
     pass
 
 
 class ReaderError(SimulatorException):
     """
-    Excepción para errores en la lectura de archivos de proyecto.
+    Exception for project file reading errors.
     
     Se lanza cuando hay problemas al cargar o procesar archivos
     de proyecto (MPP, XML, etc.).
@@ -87,87 +87,87 @@ class ReaderError(SimulatorException):
 
 class SimulationError(SimulatorException):
     """
-    Excepción para errores durante la simulación.
+    Exception for simulation errors.
     
-    Se lanza cuando ocurren problemas durante la ejecución
-    de la simulación que no pueden ser recuperados.
+    Raised when problems occur during simulation execution
+    that cannot be recovered.
     """
     pass
 
 
 class TaskError(SimulatorException):
     """
-    Excepción específica para errores relacionados con tareas.
+    Specific exception for task-related errors.
     
-    Se lanza cuando hay problemas con la creación, modificación
-    o procesamiento de tareas.
+    Raised when there are problems with task creation, modification
+    or task processing.
     """
     pass
 
 
 class ResourceError(SimulatorException):
     """
-    Excepción específica para errores relacionados con recursos.
+    Specific exception for resource-related errors.
     
-    Se lanza cuando hay problemas con la gestión de recursos,
-    asignaciones o disponibilidad.
+    Raised when there are problems with resource management,
+    assignments or availability.
     """
     pass
 
 
 class TeamError(SimulatorException):
     """
-    Excepción específica para errores relacionados con equipos.
+    Specific exception for team-related errors.
     
-    Se lanza cuando hay problemas con la gestión de equipos,
-    dinámicas sociales o asignaciones de equipo.
+    Raised when there are problems with team management,
+    social dynamics or team assignments.
     """
     pass
 
 
 class StrategyError(SimulatorException):
     """
-    Excepción para errores en estrategias de asignación.
+    Exception for assignment strategy errors.
     
-    Se lanza cuando hay problemas con la ejecución de estrategias
-    de asignación de tareas.
+    Raised when there are problems with strategy execution
+    for task assignment.
     """
     pass
 
 
 class MetricsError(SimulatorException):
     """
-    Excepción para errores en el cálculo de métricas.
+    Exception for metric calculation errors.
     
-    Se lanza cuando hay problemas al calcular métricas del proyecto
-    o cuando los datos necesarios no están disponibles.
+    Raised when there are problems calculating project metrics
+    or when necessary data is not available.
     """
     pass
 
 
 class DependencyError(SimulatorException):
     """
-    Excepción para errores relacionados con dependencias.
+    Exception for dependency-related errors.
     
-    Se lanza cuando hay problemas con las dependencias entre tareas,
-    como dependencias cíclicas o dependencias inválidas.
+    Raised when there are problems with task dependencies,
+    such as cyclic dependencies or invalid dependencies.
     """
     pass
 
 
 class PluginError(SimulatorException):
     """
-    Excepción para errores relacionados con plugins.
+    Exception for plugin-related errors.
     
-    Se lanza cuando hay problemas con la carga, inicialización
-    o ejecución de plugins.
+    Raised when there are problems with plugin loading, initialization
+    or plugin execution.
     """
     pass
 
 
 class OutputError(SimulatorException):
     """
-    Excepción para errores en la generación de salidas.
+    Exception for output generation errors.
     
     Se lanza cuando hay problemas al guardar resultados,
     generar reportes o exportar datos.
