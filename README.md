@@ -6,7 +6,7 @@
 <strong>Correo:</strong> {puga, fernando.rosales59}@uabc.edu.mx<br>
 <strong>Universidad Autónoma de Baja California</strong><br>
 <a href="http://www.uabc.edu.mx">http://www.uabc.edu.mx</a><br>
-<code>PyProjectManagementSim/examples/normal_simulations/comprehensive_tutorial.ipynb</code>
+code>
 </small>
 
 
