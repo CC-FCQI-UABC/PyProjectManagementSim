@@ -1,4 +1,18 @@
-# Contenido completo, final y definitivo de core/simulation/model.py
+"""
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/simulation/model.py
+-----------------------------------------------------------------
+"""
+
+"""
+Main model class for the ABP simulator.
+"""
 
 from mesa import Model
 from mesa.time import RandomActivation
@@ -7,7 +21,7 @@ from typing import Dict, List
 import random
 import numpy as np
 
-# Se importan las clases que el modelo necesita conocer
+# Import the classes that the model needs to know
 from core.entities import Task, Resource, Team, TaskStatus
 from core.agents import TaskAgent
 from core.simulation.parameters import SimulationParameters
@@ -16,18 +30,18 @@ from core.simulation.assignment import BaseAssignmentStrategy, STRATEGY_MAP
 
 class ProjectManagementModel(Model):
     """
-    El modelo principal de la simulación. Orquesta a los agentes,
-    el avance de las tareas y la recolección de datos.
+    The main model class for the ABP simulator. Orchestrates the agents,
+    the progress of tasks and data collection.
     """
 
-    # MODIFICADO: La firma del constructor ahora es compatible con el Runner.
-    # Acepta listas de tareas y recursos, no el objeto Project completo.
+    # The constructor now is compatible with the Runner.
+    # Accepts lists of tasks and resources, not the complete Project object.
     def __init__(self, tasks: List[Task], resources: List[Resource], params: SimulationParameters):
         super().__init__()
         self.params = params
         self.schedule = RandomActivation(self)
 
-        # El modelo ahora trabaja con su propia copia de las tareas y recursos
+        # The model now works with its own copy of the tasks and resources
         self.task_map: Dict[int, Task] = {task.id: task for task in tasks}
 
         self.teams: List[Team] = []
@@ -38,7 +52,7 @@ class ProjectManagementModel(Model):
         self.agent_to_team_map: Dict[int, Team] = {}
 
         for resource in resources:
-            # Se crea un agente por cada recurso, usando el constructor moderno
+            # Create an agent for each resource, using the modern constructor
             agent = TaskAgent(unique_id=resource.id, model=self, resource=resource)
             self.project_agents.append(agent)
             self.schedule.add(agent)
@@ -46,14 +60,14 @@ class ProjectManagementModel(Model):
 
         self._create_teams_from_config()
 
-        # Assignment strategy is selected and instantiated from configuration
+        # Assignment strategy is selected and instantiated from the configuration
         strategy_class = STRATEGY_MAP.get(params.assignment_strategy)
         if not strategy_class:
             raise ValueError(f"Unknown assignment strategy: '{params.assignment_strategy}'")
         self.assignment_strategy: BaseAssignmentStrategy = strategy_class(self)
         print(f"Info (Model): Using strategy: {strategy_class.__name__}")
 
-        # Data collector with all metrics, including team metrics
+        # Data collector with all metrics, including team metrics (morale and cohesion)
         self.datacollector = DataCollector(
             model_reporters={
                 "Time": lambda m: m.schedule.time,
@@ -96,7 +110,7 @@ class ProjectManagementModel(Model):
             work_increment = 0.0
             if task.assigned_team:
                 team = task.assigned_team
-                # CORRECTED: Only process if team IS busy AND working on this specific task
+                # Only process if team IS busy AND working on this specific task
                 if team.is_busy() and team.current_task and team.current_task.id == task.id:
                     team_base_work = len(team.members)
                     team_efficiency = team.cohesion_factor

@@ -1,4 +1,17 @@
 """
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/config/__init__.py
+-----------------------------------------------------------------
+
+"""
+
+"""
 Centralized configuration system for the ABP simulator.
 
 This module provides well-typed configuration classes
@@ -19,7 +32,7 @@ logger = get_logger(__name__)
 
 
 class LogLevel(Enum):
-    """Niveles de logging disponibles."""
+    """ Available logging levels """
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -37,7 +50,7 @@ class AssignmentStrategy(Enum):
 
 
 class ReaderType(Enum):
-    """Tipos de lectores disponibles."""
+    """ Available reader types """
     XML = "xml"
     MPXJ = "mpxj"
     ASPOSE = "aspose"
@@ -118,21 +131,21 @@ class SimulationConfig:
         """Post-initialization validation."""
         if self.max_steps < 1:
             raise ValidationError(
-                "max_steps debe ser >= 1",
+                "max_steps must be >= 1",
                 field="max_steps",
                 value=self.max_steps
             )
         
         if not 0 <= self.error_margin <= 1:
             raise ValidationError(
-                "error_margin debe estar entre 0 y 1",
+                "error_margin must be between 0 and 1",
                 field="error_margin",
                 value=self.error_margin
             )
         
         if self.reassignment_frequency < 0:
             raise ValidationError(
-                "reassignment_frequency debe ser >= 0",
+                "reassignment_frequency must be >= 0",
                 field="reassignment_frequency",
                 value=self.reassignment_frequency
             )
@@ -183,24 +196,24 @@ class ExperimentConfig:
         """Post-initialization validation."""
         if self.num_simulations < 1:
             raise ValidationError(
-                "num_simulations debe ser >= 1",
+                "num_simulations must be >= 1",
                 field="num_simulations",
                 value=self.num_simulations
             )
         
         if self.display_limit < 1:
             raise ValidationError(
-                "display_limit debe ser >= 1",
+                "display_limit must be >= 1",
                 field="display_limit",
                 value=self.display_limit
             )
         
-        # Validar formatos de salida
+        # Validate output formats
         valid_formats = ["csv", "json", "excel", "parquet"]
         for fmt in self.output_formats:
             if fmt not in valid_formats:
                 raise ValidationError(
-                    f"Formato de salida no válido: {fmt}",
+                    f"Invalid output format: {fmt}",
                     field="output_formats",
                     value=fmt
                 )
@@ -226,7 +239,7 @@ class ResourceConfig:
         """Post-initialization validation."""
         if self.resource_id <= 0:
             raise ValidationError(
-                "resource_id debe ser > 0",
+                "resource_id must be > 0",
                 field="resource_id",
                 value=self.resource_id
             )
@@ -240,21 +253,21 @@ class ResourceConfig:
         
         if self.cost_per_hour < 0:
             raise ValidationError(
-                "cost_per_hour debe ser >= 0",
+                "cost_per_hour must be >= 0",
                 field="cost_per_hour",
                 value=self.cost_per_hour
             )
         
         if not 0 <= self.efficiency <= 2:
             raise ValidationError(
-                "efficiency debe estar entre 0 y 2",
+                "efficiency must be between 0 and 2",
                 field="efficiency",
                 value=self.efficiency
             )
         
         if not 0 <= self.availability <= 1:
             raise ValidationError(
-                "availability debe estar entre 0 y 1",
+                "availability must be between 0 and 1",
                 field="availability",
                 value=self.availability
             )
@@ -279,7 +292,7 @@ class TeamConfig:
         """Post-initialization validation."""
         if self.team_id <= 0:
             raise ValidationError(
-                "team_id debe ser > 0",
+                "team_id must be > 0",
                 field="team_id",
                 value=self.team_id
             )
@@ -300,14 +313,14 @@ class TeamConfig:
         
         if not 0 <= self.initial_morale <= 1:
             raise ValidationError(
-                "initial_morale debe estar entre 0 y 1",
+                "initial_morale must be between 0 and 1",
                 field="initial_morale",
                 value=self.initial_morale
             )
         
         if not 0 <= self.initial_cohesion <= 1:
             raise ValidationError(
-                "initial_cohesion debe estar entre 0 y 1",
+                "initial_cohesion must be between 0 and 1",
                 field="initial_cohesion",
                 value=self.initial_cohesion
             )
@@ -378,34 +391,34 @@ class ConfigManager:
                     data = yaml.safe_load(f)
                 else:
                     raise ConfigurationError(
-                        f"Formato de archivo no soportado: {config_path.suffix}",
+                        f"Unsupported file format: {config_path.suffix}",
                         field="config_path",
                         value=str(config_path)
                     )
             
             self._core_config = CoreConfig(**data)
-            logger.info(f"Configuración del core cargada desde {config_path}")
+            logger.info(f"Core configuration loaded from {config_path}")
             return self._core_config
             
         except Exception as e:
             raise ConfigurationError(
-                f"Error cargando configuración del core: {e}",
+                f"Error loading core configuration: {e}",
                 field="config_path",
                 value=str(config_path)
             ) from e
     
     def load_experiment_config(self, config_path: Union[str, Path]) -> ExperimentConfig:
         """
-        Carga la configuración de experimento desde archivo.
+        Loads experiment configuration from file.
         
         Args:
-            config_path: Ruta al archivo de configuración
+            config_path: Path to configuration file
             
         Returns:
-            Configuración de experimento cargada
+            Loaded experiment configuration
             
         Raises:
-            ConfigurationError: Si hay problemas cargando la configuración
+            ConfigurationError: If there are problems loading the configuration
         """
         try:
             config_path = Path(config_path)
@@ -424,23 +437,23 @@ class ConfigManager:
                     data = yaml.safe_load(f)
                 else:
                     raise ConfigurationError(
-                        f"Formato de archivo no soportado: {config_path.suffix}",
+                        f"Unsupported file format: {config_path.suffix}",
                         field="config_path",
                         value=str(config_path)
                     )
             
-            # Procesar configuración de simulación anidada
+            # Process nested simulation configuration
             if 'simulation_config' in data:
                 sim_data = data['simulation_config']
                 data['simulation_config'] = SimulationConfig(**sim_data)
             
             self._experiment_config = ExperimentConfig(**data)
-            logger.info(f"Configuración de experimento cargada desde {config_path}")
+            logger.info(f"Experiment configuration loaded from {config_path}")
             return self._experiment_config
             
         except Exception as e:
             raise ConfigurationError(
-                f"Error cargando configuración de experimento: {e}",
+                f"Error loading experiment configuration: {e}",
                 field="config_path",
                 value=str(config_path)
             ) from e
@@ -448,20 +461,20 @@ class ConfigManager:
     def save_config(self, config: Union[CoreConfig, SimulationConfig, ExperimentConfig], 
                    config_path: Union[str, Path]) -> None:
         """
-        Guarda una configuración en archivo.
+        Saves a configuration to file.
         
         Args:
-            config: Configuración a guardar
-            config_path: Ruta donde guardar la configuración
+            config: Configuration to save
+            config_path: Path to save the configuration
             
         Raises:
-            ConfigurationError: Si hay problemas guardando la configuración
+            ConfigurationError: If there are problems saving the configuration
         """
         try:
             config_path = Path(config_path)
             config_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # Convertir dataclass a diccionario
+            # Convert dataclass to dictionary
             data = self._dataclass_to_dict(config)
             
             with open(config_path, 'w', encoding='utf-8') as f:
@@ -471,29 +484,29 @@ class ConfigManager:
                     yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
                 else:
                     raise ConfigurationError(
-                        f"Formato de archivo no soportado: {config_path.suffix}",
+                        f"Unsupported file format: {config_path.suffix}",
                         field="config_path",
                         value=str(config_path)
                     )
             
-            logger.info(f"Configuración guardada en {config_path}")
+            logger.info(f"Configuration saved to {config_path}")
             
         except Exception as e:
             raise ConfigurationError(
-                f"Error guardando configuración: {e}",
+                f"Error saving configuration: {e}",
                 field="config_path",
                 value=str(config_path)
             ) from e
     
     def _dataclass_to_dict(self, obj: Any) -> Dict[str, Any]:
         """
-        Convierte un dataclass a diccionario recursivamente.
+        Converts a dataclass to a dictionary recursively.
         
         Args:
-            obj: Objeto dataclass a convertir
+            obj: dataclass object to convert
             
         Returns:
-            Diccionario con los datos del objeto
+            Dictionary with the object data
         """
         if hasattr(obj, '__dataclass_fields__'):
             result = {}
@@ -516,45 +529,45 @@ class ConfigManager:
     
     def validate_config(self, config: Union[CoreConfig, SimulationConfig, ExperimentConfig]) -> bool:
         """
-        Valida una configuración.
+        Validates a configuration.
         
         Args:
-            config: Configuración a validar
+            config: Configuration to validate
             
         Returns:
-            True si la configuración es válida
+            True if the configuration is valid
             
         Raises:
-            ValidationError: Si la configuración no es válida
+            ValidationError: If the configuration is not valid
         """
         try:
-            # La validación se hace en __post_init__ de cada dataclass
-            # Solo verificamos que se pueda crear una nueva instancia
+            # The validation is done in __post_init__ of each dataclass
+            # We only verify that a new instance can be created
             config_type = type(config)
             config_type(**self._dataclass_to_dict(config))
             return True
         except Exception as e:
             raise ValidationError(
-                f"Configuración inválida: {e}",
+                f"Invalid configuration: {e}",
                 field="config",
                 value=str(config)
             ) from e
 
 
-# Instancia global del gestor de configuración
+# Global instance of the configuration manager
 config_manager = ConfigManager()
 
 
 def get_core_config() -> CoreConfig:
-    """Obtiene la configuración del core."""
+    """Gets the core configuration."""
     return config_manager.core_config
 
 
 def get_simulation_config() -> SimulationConfig:
-    """Obtiene la configuración de simulación."""
+    """Gets the simulation configuration."""
     return config_manager.simulation_config
 
 
 def get_experiment_config() -> ExperimentConfig:
-    """Obtiene la configuración de experimento."""
+    """Gets the experiment configuration."""
     return config_manager.experiment_config

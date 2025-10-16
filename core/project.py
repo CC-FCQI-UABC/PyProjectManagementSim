@@ -1,11 +1,27 @@
-# Complete and updated content of core/project.py
+"""
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/readers/mpxj_reader.py
+-----------------------------------------------------------------
+"""
+
+"""
+Represents the project, containing the already processed tasks and resources.
+Its main responsibility is to load data and resolve dependencies between tasks.
+"""
 
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from copy import deepcopy
 
-# Use relative import within the same 'core' package
-from .entities import Task, Resource
+# Import Task from entities and Resource from entities_extended
+from core.entities import Task
+from core.entities_extended import Resource
 
 
 @dataclass

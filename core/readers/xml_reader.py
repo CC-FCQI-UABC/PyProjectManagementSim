@@ -1,4 +1,19 @@
-# Contenido completo, final y robusto de core/readers/xml_reader.py
+"""
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/readers/xml_reader.py
+-----------------------------------------------------------------
+"""
+
+"""
+XML Reader.
+Reads XML files and converts them to Python Project objects.
+"""
 
 import os
 import traceback
@@ -16,8 +31,8 @@ XML_TASK_LINK_TYPE_FS = 1
 
 class XmlProjectReader(ProjectReader):
     """
-    Lector de archivos de proyecto en formato XML de Microsoft Project usando lxml.
-    Devuelve un objeto ProjectData.
+    Reads XML files of Microsoft Project and converts them to Python Project objects.
+    Returns a ProjectData object.
     """
 
     def _get_namespace(self, element) -> Optional[str]:
@@ -53,7 +68,7 @@ class XmlProjectReader(ProjectReader):
 
     def load(self, file_path: str) -> ProjectData:
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"XmlReader: Archivo no encontrado: {file_path}")
+            raise FileNotFoundError(f"XmlReader: File not found: {file_path}")
 
         print(f"Info (XmlReader): Loading project from '{file_path}'...")
 
@@ -64,13 +79,13 @@ class XmlProjectReader(ProjectReader):
             tree = etree.parse(file_path)
             root = tree.getroot()
             ns = self._get_namespace(root)
-            if not ns: raise ValueError("No se pudo encontrar el namespace principal en el XML.")
+            if not ns: raise ValueError("No main namespace found in XML.")
             ns_map = {'p': ns}
             print(f"Info (XmlReader): Using namespace: {ns}")
 
             project_name = root.findtext(f'{{{ns}}}Name', default='Unnamed Project')
 
-            # --- 1. Procesar Recursos ---
+            # --- 1. Process Resources ---
             resources_element = root.find(f'{{{ns}}}Resources')
             if resources_element is not None:
                 for res_elem in resources_element.findall(f'{{{ns}}}Resource'):
@@ -79,7 +94,7 @@ class XmlProjectReader(ProjectReader):
                     res_type_val = int(res_elem.findtext(f'{{{ns}}}Type', default='-1'))
 
                     if res_type_val != XML_RESOURCE_TYPE_WORK: continue
-                    if res_id_val == 0: continue  # Skip resource with ID 0
+                    if res_id_val == 0: continue  # Skip resource with ID 0 (not a valid resource)
 
                     res_name = res_elem.findtext(f'{{{ns}}}Name', default=f"Resource_{res_id_val}")
                     std_rate_elem = res_elem.find(f'{{{ns}}}StandardRate')
@@ -87,7 +102,7 @@ class XmlProjectReader(ProjectReader):
                         std_rate_elem.text if std_rate_elem is not None else None)
                     resources[res_id_val] = Resource(resource_id=res_id_val, name=res_name, cost_per_hour=cost_per_hour)
 
-            # --- 2. Procesar Tareas ---
+            # --- 2. Process Tasks ---
             tasks_element = root.find(f'{{{ns}}}Tasks')
             if tasks_element is not None:
                 for task_elem in tasks_element.findall(f'{{{ns}}}Task'):
@@ -105,20 +120,20 @@ class XmlProjectReader(ProjectReader):
                     tasks[task_uid_val] = Task(task_id=task_uid_val, name=task_name, duration=duration_hours,
                                                estimated_cost=task_cost)
 
-            # --- 3. Procesar Asignaciones ---
+            # --- 3. Process Assignments ---
             assignments_element = root.find(f'{{{ns}}}Assignments')
             if assignments_element is not None:
                 for assign_elem in assignments_element.findall(f'{{{ns}}}Assignment'):
                     task_uid_text = assign_elem.findtext(f'{{{ns}}}TaskUID')
                     res_id_text = assign_elem.findtext(
-                        f'{{{ns}}}ResourceUID')  # Esto es en realidad Resource *ID* en muchos XML
+                        f'{{{ns}}}ResourceUID')  # This is actually Resource *ID* in many XML files
                     if task_uid_text and res_id_text:
                         task_uid = int(task_uid_text)
                         res_id = int(res_id_text)
                         if task_uid in tasks and res_id in resources:
                             tasks[task_uid].required_resource_id = res_id
 
-            # --- 4. Procesar Dependencias ---
+            # --- 4. Process Dependencies ---
             dependency_elements = root.findall('.//p:PredecessorLink', ns_map)
             print(f"Info (XmlReader): Processing {len(dependency_elements)} dependencies...")
             for link in dependency_elements:
@@ -126,11 +141,11 @@ class XmlProjectReader(ProjectReader):
                 succ_uid_text = link.findtext('p:SuccessorUID', namespaces=ns_map)
                 link_type_text = link.findtext('p:Type', default='0', namespaces=ns_map)
 
-                # MODIFIED: Added a check to ensure values exist
+                # Added a check to ensure values exist
                 if pred_uid_text is None or succ_uid_text is None:
-                    continue  # Skip this link if incomplete
+                    continue  # Skip this link if incomplete (not a valid link)
 
-                # If values exist, convert them to numbers
+                # If values exist, convert them to numbers (pred_uid and succ_uid)
                 pred_uid = int(pred_uid_text)
                 succ_uid = int(succ_uid_text)
                 link_type = int(link_type_text)
@@ -138,7 +153,7 @@ class XmlProjectReader(ProjectReader):
                 if link_type == XML_TASK_LINK_TYPE_FS and succ_uid in tasks and pred_uid in tasks:
                     tasks[succ_uid].dependencies.append(pred_uid)
 
-            # --- 5. Finalizar y Devolver ProjectData ---
+            # --- 5. Finalize and Return ProjectData ---
             baseline_cost = sum(t.estimated_cost for t in tasks.values())
             project_data = ProjectData(project_name, tasks, resources, baseline_cost)
             print(f"Info (XmlReader): Load completed. Returning ProjectData.")

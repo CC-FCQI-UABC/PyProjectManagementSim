@@ -1,4 +1,17 @@
 """
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/config/logging_config.py
+-----------------------------------------------------------------
+
+"""
+
+"""
 Professional logging system for the ABP simulator.
 
 This module provides centralized logging configuration
@@ -16,7 +29,7 @@ import json
 
 class StructuredFormatter(logging.Formatter):
     """
-    Formateador que produce logs estructurados en formato JSON.
+    jSon Formatte
     
     Useful for automated analysis and integration with monitoring systems.
     """
@@ -41,11 +54,11 @@ class StructuredFormatter(logging.Formatter):
             'line': record.lineno
         }
         
-        # Agregar información de excepción si existe
+        # Add exception information if it exists
         if record.exc_info:
             log_data['exception'] = self.formatException(record.exc_info)
         
-        # Agregar campos adicionales del contexto
+        # Add additional context fields
         if hasattr(record, 'context'):
             log_data['context'] = record.context
         
@@ -59,12 +72,12 @@ class ColoredFormatter(logging.Formatter):
     Mejora la legibilidad de los logs en desarrollo.
     """
     
-    # Códigos de color ANSI
+    # ANSI color codes
     COLORS = {
         'DEBUG': '\033[36m',      # Cyan
-        'INFO': '\033[32m',       # Verde
-        'WARNING': '\033[33m',    # Amarillo
-        'ERROR': '\033[31m',      # Rojo
+        'INFO': '\033[32m',       # Green
+        'WARNING': '\033[33m',    # Yellow
+        'ERROR': '\033[31m',      # Red
         'CRITICAL': '\033[35m',   # Magenta
         'RESET': '\033[0m'        # Reset
     }
@@ -79,14 +92,14 @@ class ColoredFormatter(logging.Formatter):
         Returns:
             Cadena formateada con colores
         """
-        # Aplicar color según el nivel
+        # Apply color according to level
         color = self.COLORS.get(record.levelname, self.COLORS['RESET'])
         reset = self.COLORS['RESET']
         
-        # Crear el mensaje base
+        # Create base message
         message = super().format(record)
         
-        # Aplicar color solo si estamos en terminal
+        # Apply color only if we are in terminal
         if sys.stdout.isatty():
             return f"{color}{message}{reset}"
         else:
@@ -100,7 +113,7 @@ def setup_logging(
     colored: bool = True
 ) -> None:
     """
-    Configura el sistema de logging del simulador.
+    Configures the logging system of the simulator.
     
     Args:
         level: Nivel de logging (DEBUG, INFO, WARNING, ERROR, CRITICAL)
@@ -109,7 +122,7 @@ def setup_logging(
         colored: Si usar colores en terminal
     """
     
-    # Configuración base
+    # Base configuration
     config = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -155,10 +168,10 @@ def setup_logging(
         }
     }
     
-    # Configurar handlers
+    # Configure handlers
     handlers = []
     
-    # Handler para consola
+    # Console handler
     console_handler = 'console'
     if structured:
         config['formatters']['structured'] = {
@@ -192,7 +205,7 @@ def setup_logging(
     
     handlers.append(console_handler)
     
-    # Handler para archivo si se especifica
+    # File handler if specified
     if log_file:
         file_handler = 'file'
         config['handlers'][file_handler] = {
@@ -205,25 +218,25 @@ def setup_logging(
         }
         handlers.append(file_handler)
     
-    # Asignar handlers a loggers
+    # Assign handlers to loggers
     for logger_name in config['loggers']:
         config['loggers'][logger_name]['handlers'] = handlers.copy()
     
     config['root']['handlers'] = handlers.copy()
     
-    # Aplicar configuración
+    # Apply configuration
     logging.config.dictConfig(config)
 
 
 def get_logger(name: str) -> logging.Logger:
     """
-    Obtiene un logger configurado para el módulo especificado.
-    
+    Gets a configured logger for the specified module.
+
     Args:
-        name: Nombre del módulo (usualmente __name__)
+        name: Name of the module (usually __name__)
         
     Returns:
-        Logger configurado
+        Configured logger
     """
     return logging.getLogger(name)
 
@@ -236,22 +249,23 @@ def log_with_context(
     **kwargs
 ) -> None:
     """
-    Registra un mensaje con contexto adicional.
+    Logs a message with additional context.
     
     Args:
-        logger: Logger a usar
-        level: Nivel de logging
-        message: Mensaje a registrar
-        context: Contexto adicional
-        **kwargs: Campos adicionales del contexto
+        logger: Logger to use
+        level: Level of logging
+        message: Message to log
+        context: Additional context
+        **kwargs: Additional context fields
     """
+
     if context is None:
         context = {}
     
-    # Combinar contexto con kwargs
+    # Combine context with kwargs
     full_context = {**context, **kwargs}
     
-    # Crear registro con contexto
+    # Create record with context
     record = logger.makeRecord(
         logger.name, level, "", 0, message, (), None
     )
@@ -266,14 +280,16 @@ def log_performance(
     duration: float,
     **metrics
 ) -> None:
+
     """
-    Registra métricas de rendimiento de una operación.
-    
+
+    Logs performance metrics for an operation.
+
     Args:
-        logger: Logger a usar
-        operation: Nombre de la operación
-        duration: Duración en segundos
-        **metrics: Métricas adicionales
+        logger: Logger to use
+        operation: Name of the operation
+        duration: Duration in seconds
+        **metrics: Additional metrics
     """
     log_with_context(
         logger,
@@ -294,16 +310,18 @@ def log_simulation_step(
     active_agents: int,
     **metrics
 ) -> None:
+
     """
-    Registra información de un paso de simulación.
-    
+
+    Logs information about a simulation step.
     Args:
-        logger: Logger a usar
-        step: Número del paso
-        completion: Porcentaje de completitud
-        active_agents: Número de agentes activos
-        **metrics: Métricas adicionales
+        logger: Logger to use
+        step: Number of the step
+        completion: Completion percentage
+        active_agents: Number of active agents
+        **metrics: Additional metrics
     """
+
     log_with_context(
         logger,
         logging.DEBUG,
@@ -324,20 +342,21 @@ def log_task_assignment(
     strategy: str,
     **context
 ) -> None:
+
     """
-    Registra la asignación de una tarea.
-    
+    Logs the assignment of a task.
     Args:
-        logger: Logger a usar
-        task_id: ID de la tarea
-        resource_id: ID del recurso
-        strategy: Estrategia usada
-        **context: Contexto adicional
+        logger: Logger to use
+        task_id: ID of the task
+        resource_id: ID of the resource
+        strategy: Strategy used
+        **context: Additional context
     """
+
     log_with_context(
         logger,
         logging.INFO,
-        f"Tarea {task_id} asignada a recurso {resource_id}",
+        f"Task {task_id} assigned to resource {resource_id}",
         context={
             'task_id': task_id,
             'resource_id': resource_id,
@@ -353,15 +372,16 @@ def log_error_with_context(
     exception: Optional[Exception] = None,
     **context
 ) -> None:
+
     """
-    Registra un error con contexto detallado.
-    
+    Logs an error with detailed context.
     Args:
-        logger: Logger a usar
-        message: Mensaje de error
-        exception: Excepción asociada (opcional)
-        **context: Contexto adicional
+        logger: Logger to use
+        message: Error message
+        exception: Associated exception (optional)
+        **context: Additional context
     """
+
     log_with_context(
         logger,
         logging.ERROR,
@@ -374,10 +394,10 @@ def log_error_with_context(
     )
 
 
-# Configuración por defecto
+# Default configuration
 def setup_default_logging() -> None:
     """
-    Configura el logging con valores por defecto apropiados para desarrollo.
+    Configures the logging with default values appropriate for development.
     """
     setup_logging(
         level="INFO",
@@ -386,13 +406,13 @@ def setup_default_logging() -> None:
     )
 
 
-# Configuración para producción
+# Production configuration
 def setup_production_logging(log_file: str) -> None:
     """
-    Configura el logging para producción.
+    Configures the logging for production.
     
     Args:
-        log_file: Archivo donde guardar los logs
+        log_file: File where to save the logs
     """
     setup_logging(
         level="WARNING",
@@ -402,13 +422,13 @@ def setup_production_logging(log_file: str) -> None:
     )
 
 
-# Configuración para debugging
+# Debugging configuration
 def setup_debug_logging(log_file: Optional[str] = None) -> None:
     """
-    Configura el logging para debugging detallado.
+    Configures the logging for detailed debugging.
     
     Args:
-        log_file: Archivo donde guardar los logs (opcional)
+        log_file: File where to save the logs (optional)
     """
     setup_logging(
         level="DEBUG",

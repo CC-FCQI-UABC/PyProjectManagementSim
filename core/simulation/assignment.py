@@ -1,4 +1,18 @@
-# Complete and updated content of core/simulation/assignment.py
+"""
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/simulation/assignment.py
+-----------------------------------------------------------------
+"""
+
+"""
+Assignment strategies for the ABP simulator.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List
@@ -62,7 +76,7 @@ class GreedyAssignmentStrategy(BaseAssignmentStrategy):
                     task.status = TaskStatus.IN_PROGRESS  # Change status when assigned
 
 
-# NEW: Second assignment strategy
+# Second assignment strategy
 class ShortestTaskFirstStrategy(BaseAssignmentStrategy):
     """
     Strategy that prioritizes tasks with the shortest duration.
@@ -98,7 +112,7 @@ class ShortestTaskFirstStrategy(BaseAssignmentStrategy):
                     task.status = TaskStatus.IN_PROGRESS  # Change status when assigned
 
 
-# NEW: Parallel assignment strategy
+# Parallel assignment strategy
 class ParallelAssignmentStrategy(BaseAssignmentStrategy):
     """
     Strategy that assigns multiple tasks in parallel to all available teams.
@@ -196,7 +210,7 @@ class ParallelAssignmentStrategy(BaseAssignmentStrategy):
         # Total tasks assigned this step: {tasks_assigned}
 
 
-# MODIFIED: Add the new strategy to the map
+# Add the new strategy to the map
 STRATEGY_MAP = {
     "greedy": GreedyAssignmentStrategy,
     "shortest_first": ShortestTaskFirstStrategy,

@@ -1,5 +1,17 @@
 """
-Custom exception system for the ABP simulator.
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/exceptions.py
+-----------------------------------------------------------------
+"""
+
+"""
+Custom exception system for the PyProjectManagementSim simulator.
 
 This module defines a hierarchy of specific exceptions for the simulator,
 allowing for more granular and consistent error handling.
@@ -10,7 +22,7 @@ from typing import Any, Optional
 
 class SimulatorException(Exception):
     """
-    Base exception for all ABP simulator exceptions.
+    Base exception for all PyProjectManagementSim simulator exceptions.
     
     Provides common functionality for all specific exceptions,
     including contextual information and additional fields.
@@ -43,14 +55,14 @@ class SimulatorException(Exception):
         parts = [self.message]
         
         if self.field:
-            parts.append(f"Campo: {self.field}")
+            parts.append(f"Field: {self.field}")
         
         if self.value is not None:
-            parts.append(f"Valor: {self.value}")
+            parts.append(f"Value: {self.value}")
         
         if self.context:
             context_str = ", ".join(f"{k}={v}" for k, v in self.context.items())
-            parts.append(f"Contexto: {context_str}")
+            parts.append(f"Context: {context_str}")
         
         return " | ".join(parts)
 
@@ -79,8 +91,8 @@ class ReaderError(SimulatorException):
     """
     Exception for project file reading errors.
     
-    Se lanza cuando hay problemas al cargar o procesar archivos
-    de proyecto (MPP, XML, etc.).
+    Raised when there are problems loading or processing project
+    files (MPP, XML, etc.).
     """
     pass
 
@@ -169,23 +181,23 @@ class OutputError(SimulatorException):
     """
     Exception for output generation errors.
     
-    Se lanza cuando hay problemas al guardar resultados,
-    generar reportes o exportar datos.
+    Raised when there are problems saving results,
+    generating reports or exporting data.
     """
     pass
 
 
-# Funciones de utilidad para manejo de excepciones
+# Utility functions for exception handling
 def handle_exception(exc: Exception, context: Optional[dict] = None) -> SimulatorException:
     """
-    Convierte una excepción genérica en una excepción del simulador.
+    Convert a generic exception into a simulator exception.
     
     Args:
-        exc: Excepción original
-        context: Contexto adicional
+        exc: Original exception
+        context: Additional context
         
     Returns:
-        Excepción del simulador apropiada
+        Appropriate simulator exception
     """
     if isinstance(exc, SimulatorException):
         return exc
@@ -193,12 +205,12 @@ def handle_exception(exc: Exception, context: Optional[dict] = None) -> Simulato
     # Mapping of common exceptions to specific exceptions
     if isinstance(exc, FileNotFoundError):
         return ReaderError(
-            f"Archivo no encontrado: {exc}",
+            f"File not found: {exc}",
             context=context
         )
     elif isinstance(exc, PermissionError):
         return ReaderError(
-            f"Sin permisos para acceder al archivo: {exc}",
+            f"No permissions to access the file: {exc}",
             context=context
         )
     elif isinstance(exc, ValueError):
@@ -208,30 +220,30 @@ def handle_exception(exc: Exception, context: Optional[dict] = None) -> Simulato
         )
     elif isinstance(exc, KeyError):
         return ConfigurationError(
-            f"Clave requerida no encontrada: {exc}",
+            f"Required key not found: {exc}",
             context=context
         )
     else:
         return SimulatorException(
-            f"Error inesperado: {exc}",
+            f"Unexpected error: {exc}",
             context=context
         )
 
 
 def validate_not_none(value: Any, field_name: str) -> None:
     """
-    Valida que un valor no sea None.
+    Validate that a value is not None.
     
     Args:
-        value: Valor a validar
-        field_name: Nombre del campo para el mensaje de error
+        value: Value to validate
+        field_name: Field name for the error message
         
     Raises:
-        ValidationError: Si el valor es None
+        ValidationError: If the value is None
     """
     if value is None:
         raise ValidationError(
-            f"{field_name} no puede ser None",
+            f"{field_name} cannot be None",
             field=field_name,
             value=value
         )
@@ -239,25 +251,25 @@ def validate_not_none(value: Any, field_name: str) -> None:
 
 def validate_positive_number(value: Any, field_name: str) -> None:
     """
-    Valida que un valor sea un número positivo.
+    Validate that a value is a positive number.
     
     Args:
-        value: Valor a validar
-        field_name: Nombre del campo para el mensaje de error
+        value: Value to validate
+        field_name: Field name for the error message
         
     Raises:
-        ValidationError: Si el valor no es un número positivo
+        ValidationError: If the value is not a positive number
     """
     if not isinstance(value, (int, float)):
         raise ValidationError(
-            f"{field_name} must be a number",
+            f"{field_name} must be a positive number",
             field=field_name,
             value=value
         )
     
     if value < 0:
         raise ValidationError(
-            f"{field_name} must be a positive number",
+            f"{field_name} must be a number",
             field=field_name,
             value=value
         )
@@ -265,18 +277,18 @@ def validate_positive_number(value: Any, field_name: str) -> None:
 
 def validate_non_empty_string(value: Any, field_name: str) -> None:
     """
-    Valida que un valor sea una cadena no vacía.
+    Validate that a value is a non-empty string.
     
     Args:
-        value: Valor a validar
-        field_name: Nombre del campo para el mensaje de error
+        value: Value to validate
+        field_name: Field name for the error message
         
     Raises:
-        ValidationError: Si el valor no es una cadena no vacía
+        ValidationError: If the value is not a non-empty string
     """
     if not isinstance(value, str):
         raise ValidationError(
-            f"{field_name} debe ser una cadena",
+            f"{field_name} must be a non-empty string",
             field=field_name,
             value=value
         )

@@ -1,11 +1,25 @@
 """
-Continuación de entidades principales del simulador ABP.
-
-Este módulo contiene las clases Resource y Team, refactorizadas
-siguiendo principios SOLID con validaciones robustas y documentación completa.
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/entities_extended.py
+-----------------------------------------------------------------
 """
 
 from __future__ import annotations
+
+"""
+Extended entities of the ABP simulator.
+
+This module contains the Resource and Team classes, refactored
+following SOLID principles with robust validations and complete documentation.
+It also contains the ResourceMetrics class, which is used to store the metrics of a resource.
+"""
+
 from typing import List, Dict, Optional, Set, Any, TYPE_CHECKING
 from dataclasses import dataclass, field
 from enum import Enum
@@ -21,7 +35,7 @@ logger = get_logger(__name__)
 
 
 class ResourceType(Enum):
-    """Tipos de recursos disponibles."""
+    """Available resource types."""
     HUMAN = "human"
     EQUIPMENT = "equipment"
     MATERIAL = "material"
@@ -29,7 +43,7 @@ class ResourceType(Enum):
 
 
 class ResourceStatus(Enum):
-    """Estados de un recurso."""
+    """Resource states."""
     AVAILABLE = "available"
     BUSY = "busy"
     UNAVAILABLE = "unavailable"
@@ -46,7 +60,7 @@ class ResourceMetrics:
     cost_performance: float = 1.0
     
     def update_efficiency(self, new_efficiency: float) -> None:
-        """Actualiza la eficiencia promedio."""
+        """Update the average efficiency."""
         if self.total_tasks_completed > 0:
             self.average_efficiency = (
                 (self.average_efficiency * self.total_tasks_completed + new_efficiency) /
@@ -58,22 +72,22 @@ class ResourceMetrics:
 
 class Resource:
     """
-    Representa un recurso en el proyecto.
+    Represents a resource in the project.
     
-    Un recurso puede ser una persona, equipo, material o cualquier
-    elemento necesario para completar tareas del proyecto.
+    A resource can be a person, equipment, material or any
+    element necessary to complete tasks of the project.
     
     Attributes:
-        id: Identificador único del recurso
-        name: Nombre descriptivo del recurso
-        resource_type: Tipo de recurso
-        cost_per_hour: Costo por hora de uso del recurso
-        efficiency: Factor de eficiencia (1.0 = normal)
-        availability: Factor de disponibilidad (0.0-1.0)
-        status: Estado actual del recurso
-        skills: Habilidades o capacidades del recurso
-        metadata: Información adicional personalizada
-        metrics: Métricas de rendimiento del recurso
+        id: Unique identifier of the resource
+        name: Descriptive name of the resource
+        resource_type: Resource type
+        cost_per_hour: Cost per hour of use of the resource
+        efficiency: Efficiency factor (1.0 = normal)
+        availability: Availability factor (0.0-1.0)
+        status: Current state of the resource
+        skills: Skills or capabilities of the resource
+        metadata: Additional custom information
+        metrics: Resource performance metrics
     """
     
     def __init__(
@@ -88,20 +102,20 @@ class Resource:
         metadata: Optional[Dict[str, Any]] = None
     ):
         """
-        Inicializa un nuevo recurso.
+        Initializes a new resource.
         
         Args:
-            resource_id: Identificador único del recurso
-            name: Nombre descriptivo del recurso
-            cost_per_hour: Costo por hora (debe ser >= 0)
-            resource_type: Tipo de recurso
-            efficiency: Factor de eficiencia (debe ser > 0)
-            availability: Factor de disponibilidad (0.0-1.0)
-            skills: Lista de habilidades del recurso
-            metadata: Información adicional personalizada
+            resource_id: Unique identifier of the resource
+            name: Descriptive name of the resource
+            cost_per_hour: Cost per hour (must be >= 0)
+            resource_type: Resource type
+            efficiency: Efficiency factor (must be > 0)
+            availability: Availability factor (0.0-1.0)
+            skills: List of skills of the resource
+            metadata: Additional custom information
             
         Raises:
-            ValidationError: Si los parámetros no son válidos
+            ValidationError: If the parameters are not valid
         """
         self._validate_constructor_params(
             resource_id, name, cost_per_hour, efficiency, availability
@@ -133,7 +147,7 @@ class Resource:
         """Validate constructor parameters."""
         if not isinstance(resource_id, int) or resource_id <= 0:
             raise ValidationError(
-                f"resource_id debe ser un entero positivo, recibido: {resource_id}",
+                f"resource_id must be a positive integer, received: {resource_id}",
                 field="resource_id",
                 value=resource_id
             )
@@ -161,7 +175,7 @@ class Resource:
         
         if not isinstance(availability, (int, float)) or not (0.0 <= availability <= 1.0):
             raise ValidationError(
-                f"availability debe estar entre 0.0 y 1.0, recibido: {availability}",
+                f"availability must be between 0.0 and 1.0, received: {availability}",
                 field="availability",
                 value=availability
             )
@@ -174,12 +188,12 @@ class Resource:
     
     @property
     def name(self) -> str:
-        """Nombre del recurso."""
+        """Name of the resource."""
         return self._name
     
     @name.setter
     def name(self, value: str) -> None:
-        """Establece el nombre del recurso."""
+        """Set the name of the resource."""
         if not isinstance(value, str) or not value.strip():
             raise ValidationError(
                 f"name must be a non-empty string, received: '{value}'",
@@ -190,17 +204,17 @@ class Resource:
     
     @property
     def resource_type(self) -> ResourceType:
-        """Tipo de recurso."""
+        """Resource type."""
         return self._resource_type
     
     @property
     def cost_per_hour(self) -> float:
-        """Costo por hora del recurso."""
+        """Cost per hour of the resource."""
         return self._cost_per_hour
     
     @cost_per_hour.setter
     def cost_per_hour(self, value: float) -> None:
-        """Establece el costo por hora."""
+        """Set the cost per hour."""
         if not isinstance(value, (int, float)) or value < 0:
             raise ValidationError(
                 f"cost_per_hour must be a number >= 0, received: {value}",
@@ -211,12 +225,12 @@ class Resource:
     
     @property
     def efficiency(self) -> float:
-        """Factor de eficiencia del recurso."""
+        """Efficiency factor of the resource."""
         return self._efficiency
     
     @efficiency.setter
     def efficiency(self, value: float) -> None:
-        """Establece el factor de eficiencia."""
+        """Set the efficiency factor."""
         if not isinstance(value, (int, float)) or value <= 0:
             raise ValidationError(
                 f"efficiency must be a number > 0, received: {value}",
@@ -227,15 +241,15 @@ class Resource:
     
     @property
     def availability(self) -> float:
-        """Factor de disponibilidad del recurso."""
+        """Availability factor of the resource."""
         return self._availability
     
     @availability.setter
     def availability(self, value: float) -> None:
-        """Establece el factor de disponibilidad."""
+        """Set the availability factor."""
         if not isinstance(value, (int, float)) or not (0.0 <= value <= 1.0):
             raise ValidationError(
-                f"availability debe estar entre 0.0 y 1.0, recibido: {value}",
+                f"availability must be between 0.0 and 1.0, received: {value}",
                 field="availability",
                 value=value
             )
@@ -243,17 +257,17 @@ class Resource:
     
     @property
     def status(self) -> ResourceStatus:
-        """Estado actual del recurso."""
+        """Current state of the resource."""
         return self._status
     
     @property
     def skills(self) -> List[str]:
-        """Habilidades del recurso."""
+        """Skills of the resource."""
         return self._skills.copy()
     
     @property
     def metadata(self) -> Dict[str, Any]:
-        """Metadatos del recurso."""
+        """Metadata of the resource."""
         return self._metadata.copy()
     
     @property
@@ -264,10 +278,10 @@ class Resource:
     # Business methods
     def is_available(self) -> bool:
         """
-        Verifica si el recurso está disponible.
+        Checks if the resource is available.
         
         Returns:
-            True si el recurso está disponible y no está ocupado
+            True if the resource is available and not occupied
         """
         return (
             self._status == ResourceStatus.AVAILABLE and 
@@ -276,14 +290,14 @@ class Resource:
     
     def set_status(self, status: ResourceStatus) -> None:
         """
-        Establece el estado del recurso.
+        Set the state of the resource.
         
         Args:
-            status: Nuevo estado del recurso
+            status: New state of the resource
         """
         if not isinstance(status, ResourceStatus):
             raise ValidationError(
-                f"status debe ser una instancia de ResourceStatus, recibido: {type(status)}",
+                f"status must be an instance of ResourceStatus, received: {type(status)}",
                 field="status",
                 value=status
             )
@@ -294,10 +308,10 @@ class Resource:
     
     def add_skill(self, skill: str) -> None:
         """
-        Añade una habilidad al recurso.
+        Add a skill to the resource.
         
         Args:
-            skill: Habilidad a añadir
+            skill: Skill to add
         """
         if isinstance(skill, str) and skill.strip() and skill not in self._skills:
             self._skills.append(skill.strip())
@@ -305,58 +319,58 @@ class Resource:
     
     def remove_skill(self, skill: str) -> None:
         """
-        Elimina una habilidad del recurso.
+        Remove a skill from the resource.
         
         Args:
-            skill: Habilidad a eliminar
+            skill: Skill to remove
         """
         if skill in self._skills:
             self._skills.remove(skill)
-            logger.debug(f"Habilidad '{skill}' eliminada del recurso {self.id}")
+            logger.debug(f"Skill '{skill}' removed from resource {self.id}")
     
     def has_skill(self, skill: str) -> bool:
         """
-        Verifica si el recurso tiene una habilidad específica.
+        Checks if the resource has a specific skill.
         
         Args:
-            skill: Habilidad a verificar
+            skill: Skill to check
             
         Returns:
-            True si el recurso tiene la habilidad
+            True if the resource has the skill
         """
         return skill in self._skills
     
     def set_metadata(self, key: str, value: Any) -> None:
         """
-        Establece un metadato del recurso.
+        Set a metadata of the resource.
         
         Args:
-            key: Clave del metadato
-            value: Valor del metadato
+            key: Key of the metadata
+            value: Value of the metadata
         """
         self._metadata[key] = value
-        logger.debug(f"Metadato '{key}' establecido para recurso {self.id}")
+        logger.debug(f"Metadata '{key}' set for resource {self.id}")
     
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """
-        Obtiene un metadato del recurso.
+        Get a metadata of the resource.
         
         Args:
-            key: Clave del metadato
-            default: Valor por defecto si no existe
+            key: Key of the metadata
+            default: Default value if not exists
             
         Returns:
-            Valor del metadato o valor por defecto
+            Value of the metadata or default value
         """
         return self._metadata.get(key, default)
     
     def update_metrics(self, hours_worked: float, efficiency: float) -> None:
         """
-        Actualiza las métricas del recurso.
+        Update the metrics of the resource.
         
         Args:
-            hours_worked: Horas trabajadas en el último período
-            efficiency: Eficiencia observada en el último período
+            hours_worked: Hours worked in the last period
+            efficiency: Efficiency observed in the last period
         """
         self._metrics.total_hours_worked += hours_worked
         self._metrics.total_tasks_completed += 1
@@ -366,10 +380,10 @@ class Resource:
     
     def get_effective_cost_per_hour(self) -> float:
         """
-        Calcula el costo efectivo por hora considerando eficiencia y disponibilidad.
+        Calculate the effective cost per hour considering efficiency and availability.
         
         Returns:
-            Costo efectivo por hora
+            Effective cost per hour
         """
         return self._cost_per_hour / (self._efficiency * self._availability)
     
@@ -381,7 +395,7 @@ class Resource:
         return self._id == other._id
     
     def __hash__(self) -> int:
-        """Hash basado en ID."""
+        """Hash based on ID."""
         return hash(self._id)
     
     def __repr__(self) -> str:
@@ -400,20 +414,20 @@ class Resource:
 
 class Team:
     """
-    Representa un equipo de trabajo en el proyecto.
+    Represents a team of workers in the project.
     
-    Un equipo es un grupo de recursos que trabajan juntos
-    en tareas colaborativas, con dinámica social propia.
+    A team is a group of resources that work together
+    in collaborative tasks, with its own social dynamics.
     
     Attributes:
-        id: Identificador único del equipo
-        name: Nombre descriptivo del equipo
-        members: Lista de recursos que forman el equipo
-        morale: Nivel de moral del equipo (0.0-2.0)
-        current_task: Tarea actualmente asignada al equipo
-        time_on_current_task: Tiempo trabajando en la tarea actual
-        cohesion_factor: Factor de cohesión calculado
-        metadata: Información adicional personalizada
+        id: Unique identifier of the team
+        name: Descriptive name of the team
+        members: List of resources that form the team
+        morale: Moral level of the team (0.0-2.0)
+        current_task: Task currently assigned to the team
+        time_on_current_task: Time working on the current task
+        cohesion_factor: Calculated cohesion factor
+        metadata: Additional custom information
     """
     
     def __init__(
@@ -425,17 +439,17 @@ class Team:
         metadata: Optional[Dict[str, Any]] = None
     ):
         """
-        Inicializa un nuevo equipo.
+        Initializes a new team.
         
         Args:
-            team_id: Identificador único del equipo
-            name: Nombre descriptivo del equipo
-            members: Lista de recursos que forman el equipo
-            initial_morale: Moral inicial del equipo (0.0-2.0)
-            metadata: Información adicional personalizada
+            team_id: Unique identifier of the team
+            name: Descriptive name of the team
+            members: List of resources that form the team
+            initial_morale: Initial moral of the team (0.0-2.0)
+            metadata: Additional custom information
             
         Raises:
-            ValidationError: Si los parámetros no son válidos
+            ValidationError: If the parameters are not valid
         """
         self._validate_constructor_params(team_id, name, members, initial_morale)
         
@@ -459,7 +473,7 @@ class Team:
         """Validate constructor parameters."""
         if not isinstance(team_id, int) or team_id <= 0:
             raise ValidationError(
-                f"team_id debe ser un entero positivo, recibido: {team_id}",
+                f"team_id must be a positive integer, received: {team_id}",
                 field="team_id",
                 value=team_id
             )
@@ -481,14 +495,14 @@ class Team:
         for i, member in enumerate(members):
             if not isinstance(member, Resource):
                 raise ValidationError(
-                    f"member[{i}] debe ser una instancia de Resource, recibido: {type(member)}",
+                    f"member[{i}] must be an instance of Resource, received: {type(member)}",
                     field=f"members[{i}]",
                     value=member
                 )
         
         if not isinstance(initial_morale, (int, float)) or not (0.0 <= initial_morale <= 2.0):
             raise ValidationError(
-                f"initial_morale debe estar entre 0.0 y 2.0, recibido: {initial_morale}",
+                f"initial_morale must be between 0.0 and 2.0, received: {initial_morale}",
                 field="initial_morale",
                 value=initial_morale
             )
@@ -501,12 +515,12 @@ class Team:
     
     @property
     def name(self) -> str:
-        """Nombre del equipo."""
+        """Name of the team."""
         return self._name
     
     @name.setter
     def name(self, value: str) -> None:
-        """Establece el nombre del equipo."""
+        """Set the name of the team."""
         if not isinstance(value, str) or not value.strip():
             raise ValidationError(
                 f"name must be a non-empty string, received: '{value}'",
@@ -517,30 +531,30 @@ class Team:
     
     @property
     def members(self) -> List[Resource]:
-        """Miembros del equipo."""
+        """Members of the team."""
         return self._members.copy()
     
     @property
     def morale(self) -> float:
-        """Nivel de moral del equipo."""
+        """Moral level of the team."""
         return self._morale
     
     @property
     def current_task(self) -> Optional[Task]:
-        """Tarea actualmente asignada al equipo."""
+        """Task currently assigned to the team."""
         return self._current_task
     
     @property
     def time_on_current_task(self) -> int:
-        """Tiempo trabajando en la tarea actual."""
+        """Time working on the current task."""
         return self._time_on_current_task
     
     @time_on_current_task.setter
     def time_on_current_task(self, value: int) -> None:
-        """Establece el tiempo trabajando en la tarea actual."""
+        """Set the time working on the current task."""
         if not isinstance(value, int) or value < 0:
             raise ValidationError(
-                f"time_on_current_task debe ser un entero >= 0, recibido: {value}",
+                f"time_on_current_task must be an integer >= 0, received: {value}",
                 field="time_on_current_task",
                 value=value
             )
@@ -549,32 +563,32 @@ class Team:
     @property
     def cohesion_factor(self) -> float:
         """
-        Factor de cohesión del equipo basado en la moral.
+        Cohesion factor of the team based on the morale.
         
         Returns:
-            Factor de cohesión (0.6 + morale)
+            Cohesion factor (0.6 + morale)
         """
         return 0.6 + self._morale
     
     @property
     def metadata(self) -> Dict[str, Any]:
-        """Metadatos del equipo."""
+        """Metadata of the team."""
         return self._metadata.copy()
     
     # Business methods
     def add_member(self, member: Resource) -> None:
         """
-        Añade un miembro al equipo.
+        Add a member to the team.
         
         Args:
-            member: Recurso a añadir al equipo
+            member: Resource to add to the team
             
         Raises:
-            ValidationError: Si el miembro no es válido
+            ValidationError: If the member is not valid
         """
         if not isinstance(member, Resource):
             raise ValidationError(
-                f"member debe ser una instancia de Resource, recibido: {type(member)}",
+                f"member must be an instance of Resource, received: {type(member)}",
                 field="member",
                 value=member
             )
@@ -585,21 +599,21 @@ class Team:
     
     def remove_member(self, member: Resource) -> None:
         """
-        Elimina un miembro del equipo.
+        Remove a member from the team.
         
         Args:
-            member: Recurso a eliminar del equipo
+            member: Resource to remove from the team
         """
         if member in self._members:
             self._members.remove(member)
-            logger.debug(f"Miembro {member.id} eliminado del equipo {self.id}")
+            logger.debug(f"Member {member.id} removed from team {self.id}")
     
     def boost_morale(self, amount: float = 0.25) -> None:
         """
-        Aumenta la moral del equipo.
+        Increase the morale of the team.
         
         Args:
-            amount: Cantidad a aumentar (debe ser > 0)
+            amount: Amount to increase (must be > 0)
         """
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValidationError(
@@ -614,10 +628,10 @@ class Team:
     
     def decay_morale(self, amount: float = 0.05) -> None:
         """
-        Disminuye la moral del equipo.
+        Decrease the morale of the team.
         
         Args:
-            amount: Cantidad a disminuir (debe ser > 0)
+            amount: Amount to decrease (must be > 0)
         """
         if not isinstance(amount, (int, float)) or amount <= 0:
             raise ValidationError(
@@ -632,22 +646,22 @@ class Team:
     
     def regress_to_mean(self, baseline: float = 0.75, rate: float = 0.02) -> None:
         """
-        La moral tiende a volver a un estado base neutral con el tiempo.
+        The morale tends to return to a neutral base state over time.
         
         Args:
-            baseline: Nivel base de moral hacia el cual regresar
-            rate: Velocidad de regresión (0.0-1.0)
+            baseline: Base moral level to which to return
+            rate: Regression rate (0.0-1.0)
         """
         if not isinstance(baseline, (int, float)) or not (0.0 <= baseline <= 2.0):
             raise ValidationError(
-                f"baseline debe estar entre 0.0 y 2.0, recibido: {baseline}",
+                f"baseline must be between 0.0 and 2.0, received: {baseline}",
                 field="baseline",
                 value=baseline
             )
         
         if not isinstance(rate, (int, float)) or not (0.0 <= rate <= 1.0):
             raise ValidationError(
-                f"rate debe estar entre 0.0 y 1.0, recibido: {rate}",
+                f"rate must be between 0.0 and 1.0, received: {rate}",
                 field="rate",
                 value=rate
             )
@@ -659,39 +673,39 @@ class Team:
     
     def assign_task(self, task: Task) -> None:
         """
-        Asigna una tarea al equipo.
+        Assign a task to the team.
         
         Args:
-            task: Tarea a asignar
+            task: Task to assign
             
         Raises:
-            ValidationError: Si la tarea no es válida
+            ValidationError: If the task is not valid
         """
         # Validate task parameter using duck typing instead of isinstance
         if not hasattr(task, 'id') or not hasattr(task, 'name') or not hasattr(task, 'duration'):
             raise ValidationError(
-                f"task debe tener atributos 'id', 'name' y 'duration', recibido: {type(task)}",
+                f"task must have attributes 'id', 'name' and 'duration', received: {type(task)}",
                 field="task",
                 value=type(task)
             )
         
         self._current_task = task
         self._time_on_current_task = 0
-        logger.debug(f"Tarea {task.id} asignada al equipo {self.id}")
+        logger.debug(f"Task {task.id} assigned to team {self.id}")
     
     def release_task(self) -> None:
-        """Libera la tarea actual del equipo."""
+        """Release the current task from the team."""
         if self._current_task:
-            logger.debug(f"Tarea {self._current_task.id} liberada del equipo {self.id}")
+            logger.debug(f"Task {self._current_task.id} released from team {self.id}")
             self._current_task = None
             self._time_on_current_task = 0
     
     def is_busy(self) -> bool:
         """
-        Verifica si el equipo está ocupado.
+        Check if the team is busy.
         
         Returns:
-            True si el equipo tiene una tarea asignada y no está completada
+            True if the team has a task assigned and is not completed
         """
         return (
             self._current_task is not None and 
@@ -700,43 +714,43 @@ class Team:
     
     def get_team_size(self) -> int:
         """
-        Obtiene el número de miembros del equipo.
+        Get the number of members of the team.
         
         Returns:
-            Número de miembros
+            Number of members
         """
         return len(self._members)
     
     def get_available_members(self) -> List[Resource]:
         """
-        Obtiene los miembros disponibles del equipo.
+        Get the available members of the team.
         
         Returns:
-            Lista de miembros disponibles
+            List of available members
         """
         return [member for member in self._members if member.is_available()]
     
     def set_metadata(self, key: str, value: Any) -> None:
         """
-        Establece un metadato del equipo.
+        Set a metadata of the team.
         
         Args:
-            key: Clave del metadato
-            value: Valor del metadato
+            key: Key of the metadata
+            value: Value of the metadata
         """
         self._metadata[key] = value
-        logger.debug(f"Metadato '{key}' establecido para equipo {self.id}")
+        logger.debug(f"Metadata '{key}' set for team {self.id}")
     
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """
-        Obtiene un metadato del equipo.
-        
+        Get a metadata of the team.
+
         Args:
-            key: Clave del metadato
-            default: Valor por defecto si no existe
+            key: Key of the metadata
+            default: Default value if not exists
             
         Returns:
-            Valor del metadato o valor por defecto
+            Value of the metadata or default value
         """
         return self._metadata.get(key, default)
     
@@ -748,15 +762,15 @@ class Team:
         return self._id == other._id
     
     def __hash__(self) -> int:
-        """Hash basado en ID."""
+        """Hash based on ID."""
         return hash(self._id)
     
     def __len__(self) -> int:
-        """Number of team members."""
+        """Number of members of the team."""
         return len(self._members)
     
     def __contains__(self, member: Resource) -> bool:
-        """Verifica si un recurso es miembro del equipo."""
+        """Check if a resource is a member of the team."""
         return member in self._members
     
     def __repr__(self) -> str:
@@ -772,4 +786,4 @@ class Team:
     
     def __str__(self) -> str:
         """Readable representation of the team."""
-        return f"Equipo {self._id}: {self._name} ({len(self._members)} miembros)"
+        return f"Team {self._id}: {self._name} ({len(self._members)} members)"

@@ -1,6 +1,9 @@
 # ABP Simulator Requirements
 # Complete dependency list for ABP Simulator with Stable Baselines3
 
+# Please install user pip and a virtual environment
+# pip install -r requirements.txt (example to install all of the bellow)
+
 # Core dependencies
 pandas>=1.3.0
 mesa<2.0.0

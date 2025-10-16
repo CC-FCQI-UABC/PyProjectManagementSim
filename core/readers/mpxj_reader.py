@@ -1,4 +1,20 @@
-# core/readers/mpxj_reader.py
+"""
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/readers/mpxj_reader.py
+-----------------------------------------------------------------
+"""
+
+"""
+MPXJ Reader.
+Reads MPXJ files and converts them to Python Project objects.
+"""
+
 import os
 from typing import Dict, Optional, Tuple
 import jpype
@@ -13,7 +29,7 @@ from .base_reader import ProjectReader
 _mpxj_reader_instance = None
 _jvm_started = False
 
-MPXJ_JAR_PATH = os.environ.get("MPXJ_JAR", r"C:\ruta\a\tu\libreria\mpxj-10.x.x.jar") # <-- ¡¡AJUSTA ESTA RUTA!!
+MPXJ_JAR_PATH = os.environ.get("MPXJ_JAR", r"C:\path\to\your\library\mpxj-10.x.x.jar") # <-- ADJUST THIS PATH!!
 
 def _start_jvm(jar_path: str):
     global _jvm_started
@@ -41,39 +57,37 @@ class MpxjProjectReader(ProjectReader):
         self.jar_path = mpxj_jar_path
         _start_jvm(self.jar_path)
         try:
-            # MODIFICADO: Importar más clases de MPXJ necesarias
             jpype.imports.load_java_packages()
             from net.sf.mpxj.reader import UniversalProjectReader
             from net.sf.mpxj import TaskField, ResourceField, Duration, ProjectFile, ResourceAssignment, Rate
-            # NUEVO: Clases para recursos y asignaciones
-            from net.sf.mpxj import Resource as MpxjResource # Renombrar para evitar conflicto
+            # NEW: Classes for resources and assignments
+            from net.sf.mpxj import Resource as MpxjResource # Rename to avoid conflict
             from net.sf.mpxj.common import TimeUnit
 
             self.MPXJUniversalReader = UniversalProjectReader
             self.MPXJTaskField = TaskField
             self.MPXJResourceField = ResourceField
             self.MPXJDuration = Duration
-            self.MPXJTimeUnit = TimeUnit # NUEVO
-            self.MpxjResource = MpxjResource # NUEVO
-            self.MPXJRate = Rate # NUEVO
+            self.MPXJTimeUnit = TimeUnit # NEW
+            self.MpxjResource = MpxjResource # NEW
+            self.MPXJRate = Rate # NEW
 
             print("Info (MPXJReader): Java MPXJ classes imported.")
         except ImportError as e:
             print(f"Critical Error (MPXJReader): Could not import MPXJ classes via JPype: {e}")
             traceback.print_exc()
             raise RuntimeError("Failed to import MPXJ classes.")
-        except Exception as e: # Captura errores más generales de JPype/JVM
+        except Exception as e: # Capture general errors from JPype/JVM
             print(f"Critical Error (MPXJReader): Unexpected error during MPXJ classes import: {e}")
             traceback.print_exc()
             raise RuntimeError(f"Failed during MPXJReader initialization: {e}")
 
     def _get_cost_per_hour(self, mpxj_resource: 'MpxjResource') -> float:
-        """Intenta obtener el costo por hora de un recurso MPXJ."""
+        """Try to get the cost per hour of an MPXJ resource."""
         try:
             std_rate: Optional['Rate'] = mpxj_resource.getStandardRate()
             if std_rate is not None:
-                # MPXJ devuelve el costo en la unidad de tiempo especificada (ej. /h, /d).
-                # Necesitamos convertirlo a costo por HORA.
+                # MPXJ returns the cost in the specified time unit (e.g. /h, /d).
                 rate_amount = float(std_rate.getAmount())
                 rate_units = std_rate.getTimeUnits()
 
@@ -82,25 +96,25 @@ class MpxjProjectReader(ProjectReader):
                 elif rate_units == self.MPXJTimeUnit.MINUTES:
                     return rate_amount * 60.0
                 elif rate_units == self.MPXJTimeUnit.DAYS:
-                    # Asumir 8 horas por día si no hay info específica
-                    hours_per_day = 8.0 # Podría leerse de las opciones del calendario del proyecto
+                    # Assume 8 hours per day if no specific info
+                    hours_per_day = 8.0 # Could be read from project calendar options
                     return rate_amount / hours_per_day
                 elif rate_units == self.MPXJTimeUnit.WEEKS:
-                    hours_per_week = 40.0 # Asumir 40 horas/semana
+                    hours_per_week = 40.0 # Assume 40 hours/week
                     return rate_amount / hours_per_week
-                # Añadir más conversiones si es necesario (meses, años)
+                # Add more conversions if necessary (months, years)
                 else:
                     print(f"Adv (MPXJReader): Unhandled rate unit '{rate_units}' for Resource ID {mpxj_resource.getID()}. Using rate as is.")
-                    return rate_amount # Devolver sin convertir si la unidad es desconocida
+                    return rate_amount # Return without converting if the unit is unknown
             else:
-                 # Intentar obtener del campo Cost si StandardRate no está
+                 # Try to get from Cost field if StandardRate is not available
                  cost_val = mpxj_resource.getCost()
                  if cost_val is not None:
-                     # Advertencia: Este campo 'Cost' puede no ser por hora.
+                     # Warning: This 'Cost' field may not be per hour.
                      print(f"Adv (MPXJReader): Resource ID {mpxj_resource.getID()} has no StandardRate, using Cost field ({cost_val}). Assuming it's total cost or not per hour.")
-                     # No podemos asumir que es por hora, devolver 0 o el valor con advertencia.
-                     # return float(str(cost_val)) # Podría ser incorrecto
-                     return 0.0 # Más seguro devolver 0 si no hay tasa por hora
+                     # We can't assume it's per hour, return 0 or the value with warning.
+                     # return float(str(cost_val)) # Could be incorrect
+                     return 0.0 # More secure to return 0 if there's no hourly rate
         except Exception as e:
             print(f"Adv (MPXJReader): Error getting cost/h for Resource ID {mpxj_resource.getID()}: {e}")
         return 0.0 # Default cost if cannot be obtained
@@ -115,18 +129,18 @@ class MpxjProjectReader(ProjectReader):
         project = Project()
         project._clear_project_data()
         task_map: Dict[int, Task] = {}
-        # NEW: Map to relate MPXJ resource ID with Python Resource object
+        # Map to relate MPXJ resource ID with Python Resource object
         resource_map: Dict[int, Resource] = {}
 
         try:
             reader = self.MPXJUniversalReader()
             mpxj_project: Optional['ProjectFile'] = reader.read(JString(file_path))
 
-            if mpxj_project is None: raise ValueError("MPXJ devolvió un proyecto nulo.")
+            if mpxj_project is None: raise ValueError("MPXJ returned a null project.")
 
             project.project_name = str(mpxj_project.getProjectHeader().getProjectTitle()) or os.path.basename(file_path)
 
-            # --- NEW: Process Resources First ---
+            # --- Process Resources First ---
             mpxj_resources = mpxj_project.getResources()
             if mpxj_resources:
                 print(f"Info (MPXJReader): Processing {mpxj_resources.size()} MPXJ resources...")
@@ -171,72 +185,72 @@ class MpxjProjectReader(ProjectReader):
                         duration_hours = 0.0
                         if mpxj_duration_obj:
                              try:
-                                 # Obtener duración en minutos y convertir a horas
-                                 duration_minutes = mpxj_duration_obj.getDuration() # Valor numérico
+                                 # Get duration in minutes and convert to hours
+                                 duration_minutes = mpxj_duration_obj.getDuration() # Numeric value
                                  duration_units = mpxj_duration_obj.getUnits() # TimeUnit (MINUTES, HOURS, etc.)
                                  if duration_minutes is not None:
-                                     # Convertir a horas basado en la unidad
+                                     # Convert to hours based on the unit
                                      if duration_units == self.MPXJTimeUnit.MINUTES:
                                          duration_hours = float(duration_minutes) / 60.0
                                      elif duration_units == self.MPXJTimeUnit.HOURS:
                                          duration_hours = float(duration_minutes)
                                      elif duration_units == self.MPXJTimeUnit.DAYS:
-                                         duration_hours = float(duration_minutes) * 8.0 # Asumir 8h/día
+                                         duration_hours = float(duration_minutes) * 8.0 # Assume 8h/day
                                      elif duration_units == self.MPXJTimeUnit.WEEKS:
-                                          duration_hours = float(duration_minutes) * 40.0 # Asumir 40h/semana
+                                          duration_hours = float(duration_minutes) * 40.0 # Assume 40h/week
                                      else:
-                                         print(f"Adv (MPXJReader): Unidad de duración no manejada '{duration_units}' para Tarea ID {task_unique_id}. Usando valor como está.")
-                                         duration_hours = float(duration_minutes) # Puede ser incorrecto
+                                         print(f"Adv (MPXJReader): Duration unit not handled '{duration_units}' for Task ID {task_unique_id}. Using value as is.")
+                                         duration_hours = float(duration_minutes) # Could be incorrect
                              except Exception as dur_e:
-                                 print(f"Adv (MPXJReader): Error convirtiendo duración para Tarea ID {task_unique_id}: {dur_e}")
+                                 print(f"Adv (MPXJReader): Error converting duration for Task ID {task_unique_id}: {dur_e}")
 
                         task_cost = 0.0
                         try:
-                            cost_obj = mpxj_task.getCost() # Costo estimado de la tarea (BCWS)
+                            cost_obj = mpxj_task.getCost() # Estimated cost of the task (BCWS)
                             if cost_obj is not None:
-                                task_cost = float(str(cost_obj)) # Convertir moneda a float
+                                task_cost = float(str(cost_obj)) # Convert currency to float
                         except Exception as cost_e:
-                            print(f"Adv (MPXJReader): Error obteniendo costo para Tarea ID {task_unique_id}: {cost_e}")
+                            print(f"Adv (MPXJReader): Error getting cost for Task ID {task_unique_id}: {cost_e}")
 
-                        # Crear objeto Task Python
+                        # Create Python Task object
                         py_task = Task(task_id=task_unique_id, name=task_name,
                                        duration=duration_hours, estimated_cost=task_cost)
 
-                        # --- NUEVO: Procesar Asignaciones de Recursos para esta tarea ---
+                        # --- Process Resource Assignments for this task ---
                         assignments = mpxj_task.getResourceAssignments()
                         assigned_resource_id: Optional[int] = None
                         if assignments and not assignments.isEmpty():
                             if assignments.size() > 1:
-                                print(f"Adv (MPXJReader): Tarea ID {task_unique_id} ('{task_name}') tiene {assignments.size()} asignaciones. Usando la primera.")
-                            # Tomar la primera asignación (simplificación)
+                                print(f"Adv (MPXJReader): Task ID {task_unique_id} ('{task_name}') has {assignments.size()} assignments. Using the first one.")
+                            # Take the first assignment (simplification)
                             first_assignment: Optional['ResourceAssignment'] = assignments.get(0)
                             if first_assignment:
                                 assigned_mpxj_res_unique_id = int(first_assignment.getResourceUniqueID())
-                                # Buscar el recurso Python correspondiente en nuestro mapa
+                                # Search the corresponding Python resource in our map
                                 assigned_py_resource = resource_map.get(assigned_mpxj_res_unique_id)
                                 if assigned_py_resource:
-                                    assigned_resource_id = assigned_py_resource.id # Guardar el ID del recurso Python
+                                    assigned_resource_id = assigned_py_resource.id # Save the ID of the Python resource
                                 else:
-                                    print(f"Adv (MPXJReader): Recurso asignado (UniqueID={assigned_mpxj_res_unique_id}) a Tarea ID {task_unique_id} no encontrado en los recursos procesados.")
+                                    print(f"Adv (MPXJReader): Assigned resource (UniqueID={assigned_mpxj_res_unique_id}) to Task ID {task_unique_id} not found in processed resources.")
 
-                        # Establecer el recurso requerido en la tarea Python
+                        # Set the required resource in the Python task
                         py_task.required_resource_id = assigned_resource_id
-                        # --- FIN Procesar Asignaciones ---
+                        # --- END Process Assignments ---
 
                         task_map[task_unique_id] = py_task
                         project.add_task(py_task)
 
                     except Exception as create_e:
-                        print(f"Adv (MPXJReader): Error creando Task Python UID={task_unique_id}: {create_e}")
+                        print(f"Adv (MPXJReader): Error creating Python Task UID={task_unique_id}: {create_e}")
                         # traceback.print_exc() # Descomentar para depuración detallada
 
-                print(f"Info (MPXJReader): {len(project.tasks)} tareas de trabajo creadas y añadidas al proyecto.")
+                print(f"Info (MPXJReader): {len(project.tasks)} work tasks created and added to project.")
             else:
-                print("Adv (MPXJReader): No se encontraron tareas en el archivo MPXJ.")
-                raise ValueError("No se encontraron tareas válidas en el archivo MPXJ.")
+                print("Adv (MPXJReader): No tasks found in MPXJ file.")
+                raise ValueError("No valid tasks found in MPXJ file.")
 
 
-            # --- Procesar Dependencias ---
+            # --- Process Dependencies ---
             added_deps = 0
             if mpxj_tasks:
                 for mpxj_task in mpxj_tasks:
@@ -245,39 +259,39 @@ class MpxjProjectReader(ProjectReader):
                         predecessors = mpxj_task.getPredecessors()
                         if predecessors and not predecessors.isEmpty():
                             for relation in predecessors:
-                                # Solo considerar dependencias Fin-a-Comienzo (FS) por ahora
+                                # Consider only Start-to-Finish (FS) dependencies for now
                                 if str(relation.getType()) == "FS":
                                     source_mpxj_task = relation.getTargetTask()
                                     if source_mpxj_task:
                                         source_unique_id = int(source_mpxj_task.getUniqueID())
                                         source_py_task = task_map.get(source_unique_id)
                                         if source_py_task:
-                                            # Añadir dependencia si no existe ya
+                                            # Add dependency if it doesn't exist yet
                                             if source_py_task not in target_py_task.dependencies:
                                                 target_py_task.dependencies.append(source_py_task)
                                                 added_deps += 1
-                                        # else: # Depuración: Tarea predecesora no encontrada en el mapa
+                                        # else: # Debug: Predecessor task not found in map
                                         #     print(f"Adv (MPXJReader): Tarea predecesora (UID={source_unique_id}) para Tarea ID {target_py_task.id} no encontrada en task_map.")
-                print(f"Info (MPXJReader): {added_deps} dependencias FS añadidas.")
+                print(f"Info (MPXJReader): {added_deps} FS dependencies added.")
 
-            # Calcular métricas base (costo total estimado de tareas)
+            # Calculate baseline metrics (total estimated cost of tasks)
             project._calculate_baseline_metrics()
-            print(f"Info (MPXJReader): Carga completada. Proyecto '{project.project_name}'.")
-            print(f"  Tareas: {len(project.tasks)}, Recursos: {len(project.resources)}, Costo Base Planificado: {project.baseline_cost:.2f}")
+            print(f"Info (MPXJReader): Load completed. Project '{project.project_name}'.")
+            print(f"  Tasks: {len(project.tasks)}, Resources: {len(project.resources)}, Planned Base Cost: {project.baseline_cost:.2f}")
 
-        except jpype.JException as jex: # Capturar excepciones específicas de Java/JPype
-             print(f"Error Crítico (MPXJReader - Java): Falló el procesamiento del archivo: {jex}")
-             print("Stack trace de Java:")
+        except jpype.JException as jex: # Capture specific Java/JPype exceptions
+             print(f"Error Critical (MPXJReader - Java): Failed to process file: {jex}")
+             print("Java stack trace:")
              print(jex.stacktrace())
-             raise ValueError(f"MPXJReader: Falló al procesar '{file_path}' debido a error Java: {jex.getMessage()}")
+             raise ValueError(f"MPXJReader: Failed to process '{file_path}' due to Java error: {jex.getMessage()}")
         except Exception as e:
-            print(f"Error Crítico (MPXJReader - Python): Falló el procesamiento del archivo: {e}")
+            print(f"Error Critical (MPXJReader - Python): Failed to process file: {e}")
             traceback.print_exc()
-            raise ValueError(f"MPXJReader: Falló al leer o procesar '{file_path}': {e}")
+            raise ValueError(f"MPXJReader: Failed to read or process '{file_path}': {e}")
 
-        # Validar que el proyecto tenga recursos si son necesarios
+        # Validate that the project has resources if they are required
         if not project.resources:
-             print("Error Crítico (MPXJReader): No se cargaron recursos del archivo MPXJ. La simulación requiere recursos.")
-             raise ValueError("Proyecto cargado no contiene recursos.")
+             print("Error Critical (MPXJReader): No resources loaded from MPXJ file. Simulation requires resources.")
+             raise ValueError("Loaded project does not contain resources.")
 
         return project

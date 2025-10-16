@@ -1,4 +1,18 @@
-# Contenido completo, final y definitivo de core/agents.py
+"""
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/agents.py
+-----------------------------------------------------------------
+"""
+
+"""
+Task agent class.
+"""
 
 from mesa import Agent as MesaAgent
 from typing import Optional
@@ -23,9 +37,6 @@ class TaskAgent(MesaAgent):
     """
 
     def __init__(self, unique_id: int, model: 'ProjectManagementModel', resource: Resource, efficiency: float = 1.0):
-        # --- KEY AND DEFINITIVE MODIFICATION ---
-        # No llamamos a super().__init__() para evitar los conflictos de versiones de Mesa.
-        # En su lugar, asignamos manualmente los atributos que la clase base necesita.
         # This makes our code immune to how Mesa handles its constructor.
         self.unique_id = unique_id
         self.model = model
@@ -33,7 +44,7 @@ class TaskAgent(MesaAgent):
         if not isinstance(resource, Resource):
             raise TypeError("TaskAgent requires a valid Resource instance.")
 
-        # Atributos propios del agente
+        # Attributes specific to the agent
         self.resource = resource
         self.efficiency = max(0.1, efficiency)
         self.current_task: Optional[Task] = None
@@ -47,12 +58,12 @@ class TaskAgent(MesaAgent):
         return self.current_task is None
 
     def assign_task(self, task: Task):
-        """Asigna una tarea al agente. Es llamado por el Modelo."""
+        """Assign a task to the agent. It is called by the Model."""
         if self.is_available() and isinstance(task, Task):
             self.current_task = task
 
     def release(self):
-        """Libera al agente de su tarea actual."""
+        """Release the agent from its current task."""
         self.current_task = None
 
     def reset(self):

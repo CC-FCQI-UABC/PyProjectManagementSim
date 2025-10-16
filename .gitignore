@@ -75,7 +75,8 @@ dmypy.json
 .pyre/
 
 # Generated files
-core/generated/
+core/generated/*
+!core/generated/.gitkeep
 *.log
 *.csv
 *.xlsx
@@ -88,6 +89,21 @@ temp/
 # OS files
 Thumbs.db
 .DS_Store
+
+
+# Limit tracked files under examples/normal_simulations to only the tutorial notebook
+# First ignore everything in that folder, then re-include the folder and the notebook
+examples/normal_simulations/*
+!examples/normal_simulations/
+!examples/normal_simulations/comprehensive_tutorial.ipynb
+
+# Other local ignores
+normal_rl
+stable_baselines3
+analysis
+
+#ignore py
+create_agent_levels.py
 
 # Planning and internal documentation
 refactor-core-simulator.plan.md

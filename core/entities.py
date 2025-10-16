@@ -1,12 +1,25 @@
 """
-Entidades principales del simulador ABP.
-
-Este módulo contiene las clases fundamentales del simulador:
-Task, Resource y Team, refactorizadas siguiendo principios SOLID
-con validaciones robustas, properties y documentación completa.
+-----------------------------------------------------------------
+PyProjectManagementSim 1.0
+Modelo computacional de gestión de proyectos en Python.
+Autores: Manuel Castañón–Puga, Fernando Rosales Quiñones
+Correo electrónico: {puga, fernando.rosales59}@uabc.edu.mx
+Universidad Autónoma de Baja California
+http://www.uabc.edu.mx
+PyProjectManagementSim/core/entities.py
+-----------------------------------------------------------------
 """
 
 from __future__ import annotations
+
+"""
+Core entities of the ABP simulator.
+
+This module contains the fundamental entities of the simulator:
+Task, Resource and Team, refactored following SOLID principles
+with robust validations, properties and complete documentation.
+"""
+
 from typing import List, Dict, Optional, Set, Any
 from dataclasses import dataclass, field
 from enum import Enum
@@ -15,14 +28,14 @@ import logging
 from core.exceptions import TaskError, ResourceError, TeamError, ValidationError
 from core.config.logging_config import get_logger
 
-# Importar Resource y Team desde entities_extended
+# Import Resource and Team from entities_extended
 from core.entities_extended import Resource, Team
 
 logger = get_logger(__name__)
 
 
 class TaskStatus(Enum):
-    """Estados posibles de una tarea."""
+    """Possible task states."""
     TO_DO = "to-do"
     IN_PROGRESS = "in_progress"
     DONE = "done"
@@ -31,7 +44,7 @@ class TaskStatus(Enum):
 
 
 class TaskPriority(Enum):
-    """Prioridades de tarea."""
+    """Task priorities."""
     LOW = 1
     MEDIUM = 2
     HIGH = 3
@@ -54,19 +67,19 @@ class TaskMetrics:
     
     @property
     def cost_variance(self) -> float:
-        """Varianza en el costo (positiva = sobrecosto)."""
+        """Cost variance (positive = overcost)."""
         return self.actual_cost - self.planned_cost
     
     @property
     def schedule_performance_index(self) -> float:
-        """Índice de rendimiento del cronograma."""
+        """Schedule performance index."""
         if self.actual_duration == 0:
             return 1.0
         return self.planned_duration / self.actual_duration
     
     @property
     def cost_performance_index(self) -> float:
-        """Índice de rendimiento del costo."""
+        """Cost performance index."""
         if self.actual_cost == 0:
             return 1.0
         return self.planned_cost / self.actual_cost
@@ -74,26 +87,26 @@ class TaskMetrics:
 
 class Task:
     """
-    Representa una tarea en el proyecto.
+    Represents a task in the project.
     
-    Una tarea es la unidad básica de trabajo en el simulador,
-    con propiedades como duración, costo, dependencias y estado.
+    A task is the basic unit of work in the simulator,
+    with properties like duration, cost, dependencies and status.
     
     Attributes:
-        id: Identificador único de la tarea
-        name: Nombre descriptivo de la tarea
-        duration: Duración estimada en horas
-        estimated_cost: Costo estimado de la tarea
-        status: Estado actual de la tarea
-        progress: Progreso actual (0.0 a 1.0)
-        priority: Prioridad de la tarea
-        metrics: Métricas de rendimiento de la tarea
-        dependencies: Lista de tareas de las que depende
-        assigned_resource: Recurso asignado a la tarea
-        required_resource_id: ID del recurso requerido
-        assigned_team: Equipo asignado a la tarea
-        tags: Etiquetas para categorización
-        metadata: Información adicional personalizada
+        id: Unique task identifier
+        name: Descriptive task name
+        duration: Estimated duration in hours
+        estimated_cost: Estimated cost of the task
+        status: Current status of the task
+        progress: Current progress (0.0 to 1.0)
+        priority: Task priority
+        metrics: Task performance metrics
+        dependencies: List of tasks that depend on this task
+        assigned_resource: Resource assigned to the task
+        required_resource_id: ID of the required resource
+        assigned_team: Team assigned to the task
+        tags: Tags for categorization
+        metadata: Additional custom information
     """
     
     def __init__(
@@ -107,16 +120,16 @@ class Task:
         metadata: Optional[Dict[str, Any]] = None
     ):
         """
-        Inicializa una nueva tarea.
+        Initialize a new task.
         
         Args:
-            task_id: Identificador único de la tarea
-            name: Nombre descriptivo de la tarea
-            duration: Duración estimada en horas (debe ser > 0)
-            estimated_cost: Costo estimado (debe ser >= 0)
-            priority: Prioridad de la tarea
-            tags: Lista de etiquetas para categorización
-            metadata: Información adicional personalizada
+            task_id: Unique task identifier
+            name: Descriptive task name
+            duration: Estimated duration in hours (must be > 0)
+            estimated_cost: Estimated cost (must be >= 0)
+            priority: Task priority
+            tags: List of tags for categorization
+            metadata: Additional custom information
             
         Raises:
             ValidationError: If parameters are not valid
@@ -134,7 +147,7 @@ class Task:
         self._tags = tags or []
         self._metadata = metadata or {}
         
-        # Relaciones
+        # Relationships
         self._dependencies: List[Task] = []
         self._assigned_resource: Optional[Resource] = None
         self._required_resource_id: Optional[int] = None
@@ -158,7 +171,7 @@ class Task:
         """Validate constructor parameters."""
         if not isinstance(task_id, int) or task_id <= 0:
             raise ValidationError(
-                f"task_id debe ser un entero positivo, recibido: {task_id}",
+                f"task_id must be a positive integer, received: {task_id}",
                 field="task_id",
                 value=task_id
             )
@@ -192,15 +205,15 @@ class Task:
     
     @property
     def name(self) -> str:
-        """Nombre de la tarea."""
+        """Task name."""
         return self._name
     
     @name.setter
     def name(self, value: str) -> None:
-        """Establece el nombre de la tarea."""
+        """Set the task name."""
         if not isinstance(value, str) or not value.strip():
             raise ValidationError(
-                f"name debe ser una cadena no vacía, recibido: '{value}'",
+                f"name must be a non-empty string, received: '{value}'",
                 field="name",
                 value=value
             )
@@ -213,10 +226,10 @@ class Task:
     
     @duration.setter
     def duration(self, value: float) -> None:
-        """Establece la duración estimada."""
+        """Set the estimated duration."""
         if not isinstance(value, (int, float)) or value < 0:
             raise ValidationError(
-                f"duration debe ser un número >= 0, recibido: {value}",
+                f"duration must be a number >= 0, received: {value}",
                 field="duration",
                 value=value
             )
@@ -225,15 +238,15 @@ class Task:
     
     @property
     def real_duration(self) -> float:
-        """Duración real acumulada en horas."""
+        """Real duration accumulated in hours."""
         return self._real_duration
     
     @real_duration.setter
     def real_duration(self, value: float) -> None:
-        """Establece la duración real acumulada."""
+        """Set the real duration accumulated."""
         if not isinstance(value, (int, float)) or value < 0:
             raise ValidationError(
-                f"real_duration debe ser un número >= 0, recibido: {value}",
+                f"real_duration must be a number >= 0, received: {value}",
                 field="real_duration",
                 value=value
             )
@@ -241,15 +254,15 @@ class Task:
     
     @property
     def estimated_cost(self) -> float:
-        """Costo estimado de la tarea."""
+        """Estimated cost of the task."""
         return self._estimated_cost
     
     @estimated_cost.setter
     def estimated_cost(self, value: float) -> None:
-        """Establece el costo estimado."""
+        """Set the estimated cost."""
         if not isinstance(value, (int, float)) or value < 0:
             raise ValidationError(
-                f"estimated_cost debe ser un número >= 0, recibido: {value}",
+                f"estimated_cost must be a number >= 0, received: {value}",
                 field="estimated_cost",
                 value=value
             )
@@ -258,30 +271,30 @@ class Task:
     
     @property
     def status(self) -> TaskStatus:
-        """Estado actual de la tarea."""
+        """Current status of the task."""
         return self._status
     
     @status.setter
     def status(self, value: TaskStatus) -> None:
-        """Establece el estado de la tarea."""
+        """Set the status of the task."""
         self._status = value
     
     @property
     def progress(self) -> float:
-        """Progreso actual (0.0 a 1.0)."""
+        """Current progress (0.0 to 1.0)."""
         return self._progress
     
     @property
     def priority(self) -> TaskPriority:
-        """Prioridad de la tarea."""
+        """Task priority."""
         return self._priority
     
     @priority.setter
     def priority(self, value: TaskPriority) -> None:
-        """Establece la prioridad de la tarea."""
+        """Set the task priority."""
         if not isinstance(value, TaskPriority):
             raise ValidationError(
-                f"priority debe ser una instancia de TaskPriority, recibido: {type(value)}",
+                f"priority must be an instance of TaskPriority, received: {type(value)}",
                 field="priority",
                 value=value
             )
@@ -289,32 +302,32 @@ class Task:
     
     @property
     def dependencies(self) -> List[Task]:
-        """Lista de tareas de las que depende."""
+        """List of tasks that depend on this task."""
         return self._dependencies.copy()
     
     @dependencies.setter
     def dependencies(self, value: List[Task]) -> None:
-        """Establece las dependencias de la tarea."""
+        """Set the dependencies of the task."""
         if not isinstance(value, list):
-            raise TypeError("dependencies debe ser una lista de Task")
+            raise TypeError("dependencies must be a list of Task")
         self._dependencies = value.copy()
     
     @property
     def assigned_resource(self) -> Optional[Resource]:
-        """Recurso asignado a la tarea."""
+        """Resource assigned to the task."""
         return self._assigned_resource
     
     @property
     def required_resource_id(self) -> Optional[int]:
-        """ID del recurso requerido."""
+        """Required resource ID."""
         return self._required_resource_id
     
     @required_resource_id.setter
     def required_resource_id(self, value: Optional[int]) -> None:
-        """Establece el ID del recurso requerido."""
+        """Set the required resource ID."""
         if value is not None and (not isinstance(value, int) or value <= 0):
             raise ValidationError(
-                f"required_resource_id debe ser un entero positivo o None, recibido: {value}",
+                f"required_resource_id must be a positive integer or None, received: {value}",
                 field="required_resource_id",
                 value=value
             )
@@ -322,43 +335,43 @@ class Task:
     
     @property
     def assigned_team(self) -> Optional[Team]:
-        """Equipo asignado a la tarea."""
+        """Team assigned to the task."""
         return self._assigned_team
     
     @assigned_team.setter
     def assigned_team(self, value: Optional[Team]) -> None:
-        """Establece el equipo asignado a la tarea."""
+        """Set the team assigned to the task."""
         self._assigned_team = value
     
     @property
     def tags(self) -> List[str]:
-        """Etiquetas de la tarea."""
+        """Tags of the task."""
         return self._tags.copy()
     
     @property
     def metadata(self) -> Dict[str, Any]:
-        """Metadatos de la tarea."""
+        """Metadata of the task."""
         return self._metadata.copy()
 
     @property
     def metrics(self) -> TaskMetrics:
-        """Métricas de la tarea."""
+        """Metrics of the task."""
         return self._metrics
     
     # Business methods
     def update_progress(self, increment: float) -> None:
         """
-        Actualiza el progreso de la tarea.
+        Update the progress of the task.
         
         Args:
-            increment: Incremento de progreso (puede ser negativo)
+            increment: Progress increment (can be negative)
             
         Raises:
-            ValidationError: Si el incremento no es válido
+            ValidationError: If the increment is not valid
         """
         if not isinstance(increment, (int, float)):
             raise ValidationError(
-                f"increment debe ser un número, recibido: {type(increment)}",
+                f"increment must be a number, received: {type(increment)}",
                 field="increment",
                 value=increment
             )
@@ -370,17 +383,17 @@ class Task:
         # Update state according to progress
         if self._status == TaskStatus.TO_DO and increment > 0:
             self._status = TaskStatus.IN_PROGRESS
-            logger.debug(f"Tarea {self.id} iniciada")
+            logger.debug(f"Task {self.id} started")
         
-        # Actualizar progreso
+        # Update progress
         old_progress = self._progress
         self._progress = max(0.0, min(1.0, self._progress + increment))
         
-        # Completar tarea si progreso llega al 100%
+        # Complete task if progress reaches 100%
         if self._progress >= 1.0:
             self._status = TaskStatus.DONE
             self._progress = 1.0
-            logger.info(f"Tarea {self.id} completada")
+            logger.info(f"Task {self.id} completed")
         
         # Update metrics
         if increment > 0:
@@ -390,24 +403,24 @@ class Task:
     
     def add_dependency(self, task: Task) -> None:
         """
-        Añade una dependencia a la tarea.
+        Add a dependency to the task.
         
         Args:
-            task: Tarea de la que depende
+            task: Task that depends on this task
             
         Raises:
-            ValidationError: Si la dependencia no es válida
+            ValidationError: If the dependency is not valid
         """
         if not isinstance(task, Task):
             raise ValidationError(
-                f"dependency debe ser una instancia de Task, recibido: {type(task)}",
+                f"dependency must be an instance of Task, received: {type(task)}",
                 field="dependency",
                 value=task
             )
         
         if task.id == self.id:
             raise ValidationError(
-                "Una tarea no puede depender de sí misma",
+                "A task cannot depend on itself",
                 field="dependency",
                 value=task
             )
@@ -418,10 +431,10 @@ class Task:
     
     def remove_dependency(self, task: Task) -> None:
         """
-        Elimina una dependencia de la tarea.
+        Remove a dependency from the task.
         
         Args:
-            task: Tarea de la que ya no depende
+            task: Task that is no longer dependent on this task
         """
         if task in self._dependencies:
             self._dependencies.remove(task)
@@ -429,10 +442,10 @@ class Task:
     
     def can_start(self) -> bool:
         """
-        Verifica si la tarea puede iniciarse.
+        Check if the task can be started.
         
         Returns:
-            True si todas las dependencias están completadas
+            True if all dependencies are completed
         """
         if self._status != TaskStatus.TO_DO:
             return False
@@ -441,119 +454,119 @@ class Task:
     
     def assign_resource(self, resource: Resource) -> None:
         """
-        Asigna un recurso a la tarea.
+        Assign a resource to the task.
         
         Args:
-            resource: Recurso a asignar
+            resource: Resource to assign
             
         Raises:
-            ValidationError: Si el recurso no es válido
+            ValidationError: If the resource is not valid
         """
         if not isinstance(resource, Resource):
             raise ValidationError(
-                f"resource debe ser una instancia de Resource, recibido: {type(resource)}",
+                f"resource must be an instance of Resource, received: {type(resource)}",
                 field="resource",
                 value=resource
             )
         
         self._assigned_resource = resource
-        logger.debug(f"Recurso {resource.id} asignado a tarea {self.id}")
+        logger.debug(f"Resource {resource.id} assigned to task {self.id}")
     
     def assign_team(self, team: Team) -> None:
         """
-        Asigna un equipo a la tarea.
+        Assign a team to the task.
         
         Args:
-            team: Equipo a asignar
+            team: Team to assign
             
         Raises:
-            ValidationError: Si el equipo no es válido
+            ValidationError: If the team is not valid
         """
         if not isinstance(team, Team):
             raise ValidationError(
-                f"team debe ser una instancia de Team, recibido: {type(team)}",
+                f"team must be an instance of Team, received: {type(team)}",
                 field="team",
                 value=team
             )
         
         self._assigned_team = team
-        logger.debug(f"Equipo {team.id} asignado a tarea {self.id}")
+        logger.debug(f"Team {team.id} assigned to task {self.id}")
     
     def release_assignment(self) -> None:
-        """Libera la asignación de recurso o equipo."""
+        """Release the resource or team assignment."""
         if self._assigned_resource:
-            logger.debug(f"Recurso liberado de tarea {self.id}")
+            logger.debug(f"Resource released from task {self.id}")
             self._assigned_resource = None
         
         if self._assigned_team:
-            logger.debug(f"Equipo liberado de tarea {self.id}")
+            logger.debug(f"Team released from task {self.id}")
             self._assigned_team = None
     
     def add_tag(self, tag: str) -> None:
         """
-        Añade una etiqueta a la tarea.
+        Add a tag to the task.
         
         Args:
-            tag: Etiqueta a añadir
+            tag: Tag to add
         """
         if isinstance(tag, str) and tag.strip() and tag not in self._tags:
             self._tags.append(tag.strip())
-            logger.debug(f"Etiqueta '{tag}' añadida a tarea {self.id}")
+            logger.debug(f"Tag '{tag}' added to task {self.id}")
     
     def remove_tag(self, tag: str) -> None:
         """
-        Elimina una etiqueta de la tarea.
+        Remove a tag from the task.
         
         Args:
-            tag: Etiqueta a eliminar
+            tag: Tag to remove
         """
         if tag in self._tags:
             self._tags.remove(tag)
-            logger.debug(f"Etiqueta '{tag}' eliminada de tarea {self.id}")
+            logger.debug(f"Tag '{tag}' removed from task {self.id}")
     
     def set_metadata(self, key: str, value: Any) -> None:
         """
-        Establece un metadato de la tarea.
+        Set a metadata of the task.
         
         Args:
-            key: Clave del metadato
-            value: Valor del metadato
+            key: Key of the metadata
+            value: Value of the metadata
         """
         self._metadata[key] = value
-        logger.debug(f"Metadato '{key}' establecido para tarea {self.id}")
+        logger.debug(f"Metadata '{key}' set for task {self.id}")
     
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """
-        Obtiene un metadato de la tarea.
+        Get a metadata of the task.
         
         Args:
-            key: Clave del metadato
-            default: Valor por defecto si no existe
+            key: Key of the metadata
+            default: Default value if not exists
             
         Returns:
-            Valor del metadato o valor por defecto
+            Value of the metadata or default value
         """
         return self._metadata.get(key, default)
     
     # Special methods
     def __eq__(self, other: object) -> bool:
-        """Comparación de igualdad basada en ID."""
+        """Equality comparison based on ID."""
         if not isinstance(other, Task):
             return False
         return self._id == other._id
     
     def __hash__(self) -> int:
-        """Hash basado en ID."""
+        """Hash based on ID."""
         return hash(self._id)
     
     def __lt__(self, other: Task) -> bool:
-        """Comparación menor que basada en prioridad."""
+        """Comparison less than based on priority."""
         if not isinstance(other, Task):
             return NotImplemented
         return self._priority.value < other._priority.value
     
     def __repr__(self) -> str:
-        """Representación textual de la tarea."""
+        """Textual representation of the task."""
         deps_str = f", deps={[d.id for d in self._dependencies]}" if self._dependencies else ""
         res_str = f", res={self._assigned_resource.id}" if self._assigned_resource else ""
         team_str = f", team={self._assigned_team.id}" if self._assigned_team else ""
@@ -567,5 +580,5 @@ class Task:
         )
     
     def __str__(self) -> str:
-        """Representación legible de la tarea."""
-        return f"Tarea {self._id}: {self._name} ({self._status.value})"
+        """Readable representation of the task."""
+        return f"Task {self._id}: {self._name} ({self._status.value})"
