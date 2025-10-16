@@ -31,7 +31,6 @@ from .factory import (
 
 # Import existing readers for automatic registration
 from .xml_reader import XmlProjectReader
-from .mpxj_reader import MpxjProjectReader
 from .aspose_reader import AsposeProjectReader
 
 __all__ = [
@@ -48,6 +47,5 @@ __all__ = [
     
     # Specific Readers
     'XmlProjectReader',
-    'MpxjProjectReader',
     'AsposeProjectReader'
 ]

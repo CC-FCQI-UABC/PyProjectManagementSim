@@ -51,7 +51,7 @@ class ExperimentConfig:
         "error_margin": 0.15, "reassignment_frequency": 0, "max_steps": 1500
     })
     team_definitions: List[Dict[str, Any]] = field(default_factory=list)
-    assignment_strategy: str = "greedy"
+    assignment_strategy: str = "greedy"  # greedy | shortest_first | parallel
     num_simulations: int = 5
     output_folder_relative_path: str = "core/generated"
     output_filename_base: str = "simulation_results_xml"

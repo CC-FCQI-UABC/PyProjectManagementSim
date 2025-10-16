@@ -37,35 +37,49 @@ Notes
 
 The repository includes a sample Microsoft Project plan at `data/Software Development Plan.xml` and a Jupyter tutorial at `examples/normal_simulations/comprehensive_tutorial.ipynb`.
 
-### Run a minimal simulation from Python
+### Run a minimal simulation from Python (create it in PyProjectManagementSim\examples)
+
+The safest pattern is to avoid passing kwargs to the constructor and assign fields after creating the config. This prevents signature collisions across environments without changing core code.
 
 ```python
-from core.simulation.runner import ExperimentConfig, SimulationRunner
+import core.simulation.runner as runner_mod
 
-config = ExperimentConfig(
-    mpp_file_name="Software Development Plan.xml",    # file in ./data
-    data_folder_relative_path="data",
-    reader_type="xml",                                # xml reader enabled
-    assignment_strategy="greedy",                     # greedy | shortest_first | parallel
-    num_simulations=3,
-    simulation_params={
-        "error_margin": 0.15,
-        "reassignment_frequency": 0,
-        "max_steps": 1500,
-    },
-    team_definitions=[
-        # Example: create a team that can work together (resource IDs must exist in the XML)
-        {"id": 1, "name": "Core Team", "member_resource_ids": [1, 2, 3]}
-    ],
-    output_folder_relative_path="core/generated",
-    output_filename_base="simulation_results_xml",
-    add_timestamp_to_filename=True,
-    print_last_run_summary=True,
-    show_loaded_tasks=False,
-    show_loaded_resources=False,
-)
+# Build config without kwargs (then assign fields)
+cfg = runner_mod.ExperimentConfig()
 
-runner = SimulationRunner(config)
+# Project input
+cfg.mpp_file_name = "Software Development Plan.xml"  # lives in ./data
+cfg.data_folder_relative_path = "data"
+cfg.reader_type = "xml"  # XmlProjectReader
+
+# Simulation controls
+cfg.num_simulations = 3
+cfg.simulation_params = {
+  "error_margin": 0.15,
+  "reassignment_frequency": 0,
+  "max_steps": 1500,
+}
+
+# Optional: teams (resource IDs must exist in the XML)
+cfg.team_definitions = [
+  {"id": 1, "name": "Core Team", "member_resource_ids": [1, 2, 3]},
+]
+
+# Optional: resource cost overrides
+cfg.resources_definition = [
+  # {"resource_id": 1, "cost_per_hour": 120.0},
+]
+
+# Outputs
+cfg.output_folder_relative_path = "core/generated"
+cfg.output_filename_base = "simulation_results_xml"
+cfg.add_timestamp_to_filename = True
+cfg.print_last_run_summary = True
+
+# Important: set assignment strategy post-construction to avoid constructor kwarg issues
+cfg.assignment_strategy = "greedy"  # greedy | shortest_first | parallel
+
+runner = runner_mod.SimulationRunner(cfg)
 runner.run()  # CSV will be written under core/generated/
 ```
 
