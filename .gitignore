@@ -116,4 +116,5 @@ refactor-core-simulator.plan.md
 # ignore mpxj and the libs folder
 mpxj_reader.py
 libs/
+analysis/
 
