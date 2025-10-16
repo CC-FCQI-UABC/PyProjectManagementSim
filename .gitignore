@@ -4,6 +4,10 @@ __pycache__/
 *$py.class
 *.so
 
+# Ignore IDE files
+.vscode/
+.idea/*
+
 # Distribution / packaging
 .Python
 build/
