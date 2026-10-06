@@ -1,49 +1,37 @@
 # ABP Simulator Requirements
-# Complete dependency list for ABP Simulator with Stable Baselines3
+# Complete dependency list for ABP Simulator
 
 # Please install user pip and a virtual environment
 # pip install -r requirements.txt (example to install all of the bellow)
 
 # Core dependencies
-pandas>=1.3.0
-mesa<2.0.0
-numpy>=1.21.0,<2.0.0
-
-# Reinforcement Learning
-stable-baselines3>=2.0.0
-gymnasium>=0.28.0
-torch>=1.13.0
-tensorboard>=2.10.0
+pandas>=3.0.6
+mesa>=3.5.1,<4
+networkx>=3.7  # imported by mesa 3.5 but not declared as a dependency
+numpy>=2.5.3
+pyyaml>=6.0.3  # core/config YAML loading
 
 # Project file parsing
-aspose-tasks>=23.0.0
-JPype1>=1.4.0
-lxml>=4.9.0
-isodate>=0.6.1
+lxml>=6.1.3
+isodate>=0.7.2
 
 # Visualization
-matplotlib>=3.4.0
-seaborn>=0.11.0
-plotly>=5.0.0
-kaleido>=0.2.1
-dash>=2.0.0
-pygame>=2.5.0
-solara>=1.32.0
+matplotlib>=3.11.2  # used by the tutorial notebook
 
 # Testing
-pytest>=7.0.0
-pytest-cov>=3.0.0
-pytest-mock>=3.10.0
+pytest>=9.1.1
+pytest-cov>=7.1.0
+pytest-mock>=3.16.0
 
 # Code quality
-black>=22.0.0
-isort>=5.10.0
-mypy>=0.9.0
-flake8>=4.0.0
-pylint>=2.13.0
+black>=26.10.0
+isort>=9.0.2
+mypy>=2.4.0
+flake8>=7.4.1
+pylint>=4.1.2
 
 # Build and packaging
-build>=0.8.0
-twine>=4.0.0
-setuptools>=60.0.0
-wheel>=0.37.0
+build>=1.6.1
+twine>=7.0.0
+setuptools>=84.0.0
+wheel>=0.48.0

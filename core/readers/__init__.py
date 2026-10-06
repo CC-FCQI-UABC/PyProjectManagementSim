@@ -31,7 +31,8 @@ from .factory import (
 
 # Import existing readers for automatic registration
 from .xml_reader import XmlProjectReader
-from .aspose_reader import AsposeProjectReader
+
+register_reader('xml', XmlProjectReader, XmlProjectReader.supported_extensions)
 
 __all__ = [
     # Factory
@@ -46,6 +47,5 @@ __all__ = [
     'get_factory_stats',
     
     # Specific Readers
-    'XmlProjectReader',
-    'AsposeProjectReader'
+    'XmlProjectReader'
 ]

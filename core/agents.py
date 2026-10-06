@@ -36,17 +36,20 @@ class TaskAgent(MesaAgent):
     Agente que representa un Recurso y ejecuta Tareas.
     """
 
-    def __init__(self, unique_id: int, model: 'ProjectManagementModel', resource: Resource, efficiency: float = 1.0):
-        # This makes our code immune to how Mesa handles its constructor.
-        self.unique_id = unique_id
-        self.model = model
-
+    def __init__(self, unique_id: int, model: 'ProjectManagementModel', resource: Resource,
+                 efficiency: Optional[float] = None):
         if not isinstance(resource, Resource):
             raise TypeError("TaskAgent requires a valid Resource instance.")
 
+        # Mesa 3 registers the agent with the model (model.agents) and assigns a
+        # sequential unique_id; keep the resource id as the agent id instead.
+        super().__init__(model)
+        self.unique_id = unique_id
+
         # Attributes specific to the agent
         self.resource = resource
-        self.efficiency = max(0.1, efficiency)
+        # Default to the resource's own efficiency factor
+        self.efficiency = max(0.1, resource.efficiency if efficiency is None else efficiency)
         self.current_task: Optional[Task] = None
         self.total_tasks_completed: int = 0
         self.worked_hours: float = 0.0

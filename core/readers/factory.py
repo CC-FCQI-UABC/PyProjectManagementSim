@@ -21,6 +21,7 @@ from typing import Dict, Type, Optional, List, Any
 from abc import ABC, abstractmethod
 from pathlib import Path
 import importlib
+import logging
 import inspect
 
 from core.interfaces import IProjectReader, ProjectData
@@ -90,7 +91,7 @@ class ReaderFactory:
         
         log_with_context(
             logger,
-            logger.info,
+            logging.INFO,
             f"Reader registered: {reader_type}",
             context={
                 'reader_type': reader_type,
@@ -149,7 +150,7 @@ class ReaderFactory:
             
             log_with_context(
                 logger,
-                logger.debug,
+                logging.DEBUG,
                 f"Reader created: {reader_type}",
                 context={
                     'file_path': file_path,
@@ -278,6 +279,8 @@ class ReaderFactory:
             # Check constructor parameters
             sig = inspect.signature(reader_class.__init__)
             for param_name, param in sig.parameters.items():
+                if param.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                    continue
                 if param_name != 'self' and param.default == inspect.Parameter.empty:
                     if param_name not in self._reader_configs.get(reader_type, {}):
                         errors.append(f"Required parameter '{param_name}' not specified")

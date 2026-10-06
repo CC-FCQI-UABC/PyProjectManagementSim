@@ -96,6 +96,7 @@ class Task:
         id: Unique task identifier
         name: Descriptive task name
         duration: Estimated duration in hours
+        work: Effort in hours needed to complete the task (defaults to duration)
         estimated_cost: Estimated cost of the task
         status: Current status of the task
         progress: Current progress (0.0 to 1.0)
@@ -117,7 +118,8 @@ class Task:
         estimated_cost: float,
         priority: TaskPriority = TaskPriority.MEDIUM,
         tags: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        work: Optional[float] = None
     ):
         """
         Initialize a new task.
@@ -130,15 +132,19 @@ class Task:
             priority: Task priority
             tags: List of tags for categorization
             metadata: Additional custom information
+            work: Effort in hours (must be >= 0); defaults to duration
             
         Raises:
             ValidationError: If parameters are not valid
         """
         self._validate_constructor_params(task_id, name, duration, estimated_cost)
+        if work is not None and (not isinstance(work, (int, float)) or work < 0):
+            raise ValidationError(f"work must be a number >= 0, received: {work}", field="work", value=work)
         
         self._id = task_id
         self._name = name
         self._duration = max(0.0, duration)
+        self._work = float(self._duration if work is None else work)
         self._real_duration = 0.0  # Real accumulated duration
         self._estimated_cost = max(0.0, estimated_cost)
         self._status = TaskStatus.TO_DO
@@ -236,6 +242,11 @@ class Task:
         self._duration = value
         self._metrics.planned_duration = value
     
+    @property
+    def work(self) -> float:
+        """Effort in hours needed to complete the task."""
+        return self._work
+
     @property
     def real_duration(self) -> float:
         """Real duration accumulated in hours."""

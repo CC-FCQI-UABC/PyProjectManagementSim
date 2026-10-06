@@ -18,6 +18,8 @@ from abc import ABC, abstractmethod
 # Import the classes that the interfaces need to know
 from core.entities import Task, Resource, Team
 from core.exceptions import SimulatorException
+# Readers return core.project.ProjectData; re-exported here so there is a single definition.
+from core.project import ProjectData
 from typing import List, Dict, Any, Optional, Protocol, runtime_checkable
 from dataclasses import dataclass
 
@@ -435,29 +437,6 @@ class IDataProcessor(ABC):
 
 
 # Data classes for the interfaces
-@dataclass
-class ProjectData:
-    """
-    Data of a project loaded from a file.
-    
-    Contains all the information needed to create
-    a project in the simulator.
-    """
-    
-    tasks: List[Task]
-    resources: List[Resource]
-    teams: List[Team]
-    metadata: Dict[str, Any]
-    
-    def __post_init__(self):
-        """Post-initialization validation."""
-        if not self.tasks:
-            raise ValueError("The project must have at least one task")
-        
-        if not self.resources:
-            raise ValueError("The project must have at least one resource")
-
-
 @dataclass
 class SimulationResult:
     """

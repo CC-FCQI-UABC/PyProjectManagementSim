@@ -30,8 +30,8 @@ python -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -U pip; pip inst
 ```
 
 Notes
-- Python 3.9–3.11 is recommended (Mesa 1.x and numpy < 2 are required by requirements.txt).
-- Only the XML reader is enabled by default. Aspose reader exists but is optional and may require additional setup.
+- Python 3.12+ is required (Mesa 3.x, pinned to `mesa>=3.0,<3.5.1` in requirements.txt; Mesa 3.5 needs Python 3.12+).
+- Plans are read from MS Project XML. To use a `.mpp` file, save it as XML from MS Project first.
 
 ## Quick start
 
@@ -98,9 +98,9 @@ Open `examples/normal_simulations/comprehensive_tutorial.ipynb` in Jupyter/VS Co
 ExperimentConfig (core.simulation.runner)
 - mpp_file_name: str — File name inside `data_folder_relative_path` (e.g., `Software Development Plan.xml`).
 - data_folder_relative_path: str — Folder (relative to repo root) containing the plan.
-- reader_type: str — Currently `xml` is supported (XmlProjectReader). Unsupported types raise a ValueError.
+- reader_type: str — A reader registered in `core.readers` (currently `xml`, XmlProjectReader). Unsupported types raise a ValueError.
 - resources_definition: List[dict] — Optional overrides, each with `resource_id` and `cost_per_hour` to update loaded resources.
-- simulation_params: dict — Keys: `error_margin` (float), `reassignment_frequency` (int), `max_steps` (int).
+- simulation_params: dict — Keys: `error_margin` (float), `max_steps` (int), `reassignment_frequency` (int; not implemented — a non-zero value only prints a warning).
 - team_definitions: List[dict] — Each with `id`, `name`, and `member_resource_ids` (list of resource IDs that form the team).
 - assignment_strategy: str — `greedy` | `shortest_first` | `parallel` (see core/simulation/assignment.py).
 - num_simulations: int — Number of repeated runs for aggregation.
@@ -108,16 +108,17 @@ ExperimentConfig (core.simulation.runner)
 - output_filename_base: str — Base name for CSV.
 - add_timestamp_to_filename: bool — If True, append timestamp to the CSV file name.
 - print_last_run_summary: bool — If True, print the last simulation’s final metrics row.
+- seed: Optional[int] — Base random seed. Simulation i uses `seed + i - 1`, so the whole experiment is reproducible. `None` (default) gives different results each time.
 - show_loaded_tasks/show_loaded_resources: bool — Log loaded items to the console.
 - display_limit: int — Max items displayed when printing loaded tasks/resources.
 
 Model metrics (core/simulation/model.py)
 - Time — simulation step counter
-- Completion — percent complete based on task durations and progress
-- ActualCost — sum of worked hours × resource cost
+- Completion — percent of total planned work (effort hours) completed
+- ActualCost — sum of worked hours × resource cost (one simulation step = one hour of effort)
 - EarnedValue — sum of task estimated cost × progress
 - CPI — EV/AC (1.0 when AC == 0)
-- SPI — EV/PV (1.0 when PV == 0)
+- SPI — EV/PV (1.0 when PV == 0); PV follows an early-start schedule built from task work and dependencies
 - ActiveAgents — agents currently working
 - AvgTeamMorale, AvgTeamCohesion — simple team dynamics indicators
 
@@ -141,8 +142,7 @@ PyProjectManagementSim/
 │   ├── readers/
 │   │   ├── __init__.py
 │   │   ├── base_reader.py
-│   │   ├── xml_reader.py    # default reader (enabled)
-│   │   └── aspose_reader.py # optional (not wired by default)
+│   │   └── xml_reader.py    # MS Project XML reader
 │   └── simulation/
 │       ├── assignment.py    # greedy | shortest_first | parallel
 │       ├── model.py
@@ -160,8 +160,10 @@ PyProjectManagementSim/
 
 - XML files: The default reader expects MS Project XML. Ensure your XML contains:
   - Resources of type "Work" and tasks (non-summary) with UIDs
-  - Optional Assignments to link tasks to required resources
-  - PredecessorLink elements for dependencies
-- Aspose reader: Present but not enabled by default in `get_reader`. If you plan to use it, additional setup may be needed and you must wire it in `core/simulation/runner.get_reader`.
+  - Team `member_resource_ids` must be resource IDs from the XML; unknown IDs, or a resource in two teams, raise a ValueError
+  - Task `Work` values: effort is driven by Work, not Duration (tasks without `Work` fall back to Duration; zero-work tasks complete automatically)
+  - Optional Assignments to link tasks to required resources (if a task has several, only the resource with the most work is simulated)
+  - PredecessorLink elements for dependencies (finish-to-start only; lags are ignored)
+  - Invalid values (durations, costs, IDs) raise `ReaderError` naming the task
 - No data generated: Check that your XML has valid tasks and resources and that `assignment_strategy` matches available resource IDs.
-- Cleaning outputs: Run `cleanup_generated.py` to remove files under `core/generated/`.
+- Cleaning outputs: Run `cleanup_generated.py` to remove files under `core/generated/` and Python caches. It always works on the project folder and never touches `.venv` or other hidden folders.

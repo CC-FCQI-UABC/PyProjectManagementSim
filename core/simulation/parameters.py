@@ -15,15 +15,18 @@ Simulation parameters class.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 
 @dataclass
 class SimulationParameters:
     error_margin: float = 0.1
-    reassignment_frequency: int = 10
+    reassignment_frequency: int = 0  # not implemented; a non-zero value only triggers a warning
     max_steps: int = 1000
     team_definitions: List[Dict] = field(default_factory=list)
 
     # NEW: Field to store the assignment strategy name.
     assignment_strategy: str = "greedy"
+
+    # Random seed for reproducible runs (None = different every run)
+    seed: Optional[int] = None

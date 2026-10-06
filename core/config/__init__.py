@@ -53,7 +53,6 @@ class ReaderType(Enum):
     """ Available reader types """
     XML = "xml"
     MPXJ = "mpxj"
-    ASPOSE = "aspose"
 
 
 @dataclass
@@ -158,6 +157,9 @@ class ExperimentConfig:
     
     Contains specific parameters for running experiments
     with multiple simulations.
+
+    Note: this is NOT the config used by SimulationRunner; that one is
+    core.simulation.runner.ExperimentConfig (different fields).
     """
     
     # Files and data

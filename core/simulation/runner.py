@@ -20,25 +20,21 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import traceback
-import jpype
 
 from core.project import Project, ProjectData
 from core.entities import Resource, Task
 from core.simulation.model import ProjectManagementModel
 from core.simulation.parameters import SimulationParameters
-from core.readers.base_reader import ProjectReader
-from core.readers.xml_reader import XmlProjectReader
+from core.interfaces import IProjectReader
+from core.readers import create_reader, get_reader_types
 
 
-# from core.readers.mpxj_reader import MpxjProjectReader
-# from core.readers.aspose_reader import AsposeProjectReader
-
-
-def get_reader(reader_type: str) -> ProjectReader:
-    if reader_type.lower() == "xml":
-        return XmlProjectReader()
-    else:
-        raise ValueError(f"Lector de tipo '{reader_type}' no soportado.")
+def get_reader(reader_type: str, file_path: str = "") -> IProjectReader:
+    """Create a registered reader (see core.readers) by type, e.g. 'xml'."""
+    reader_type = reader_type.lower()
+    if reader_type not in get_reader_types():
+        raise ValueError(f"Lector de tipo '{reader_type}' no soportado. Disponibles: {get_reader_types()}")
+    return create_reader(file_path, reader_type)
 
 
 @dataclass
@@ -60,10 +56,18 @@ class ExperimentConfig:
     show_loaded_tasks: bool = False
     show_loaded_resources: bool = False
     display_limit: int = 20
+    # Base random seed: simulation i uses seed + i - 1, so the whole experiment is reproducible.
+    # None = different results every time.
+    seed: Optional[int] = None
 
 
 class SimulationRunner:
     def __init__(self, config: ExperimentConfig):
+        if not isinstance(config, ExperimentConfig):
+            raise TypeError(
+                f"SimulationRunner needs core.simulation.runner.ExperimentConfig, got "
+                f"{type(config).__module__}.{type(config).__name__}. "
+                f"(core.config.ExperimentConfig is a different, unrelated schema.)")
         self.config = config
         self.aggregated_results = pd.DataFrame()
         self._project_root = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -74,7 +78,7 @@ class SimulationRunner:
 
     def _prepare_project(self) -> Project:
         print(f"Info (Runner): Preparing project from '{self.project_file_path}'...")
-        reader = get_reader(self.config.reader_type)
+        reader = get_reader(self.config.reader_type, self.project_file_path)
         project_data = reader.load(self.project_file_path)
         project = Project(project_data)
         project.override_resource_costs(self.config.resources_definition)
@@ -104,6 +108,8 @@ class SimulationRunner:
             for i in range(1, self.config.num_simulations + 1):
                 print(f"--- Simulation {i}/{self.config.num_simulations} ---")
                 try:
+                    if self.config.seed is not None:
+                        sim_params.seed = self.config.seed + i - 1
                     tasks_for_run = project_template.get_tasks_for_simulation()
                     resources_for_run = project_template.get_resources_for_simulation()
 
@@ -122,7 +128,7 @@ class SimulationRunner:
                     # 3. Añadimos el DataFrame completo a nuestra lista
                     all_run_dataframes.append(run_df)
 
-                    print(f"--- Simulation {i} completed in {model.schedule.time} steps. ---")
+                    print(f"--- Simulation {i} completed in {model.steps} steps. ---")
 
                 except Exception as sim_exec_e:
                     print(f"  Error during Simulation {i}: {sim_exec_e}")
